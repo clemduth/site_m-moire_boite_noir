@@ -90,13 +90,3 @@ vérifier les droits :
 - `save.php` : 644, propriétaire `clem`
 - `resultats/` : 755, propriétaire `www-data` (pour que PHP puisse y écrire)
 
-## test local rapide
-
-```bash
-cd site_final
-python3 -m http.server 8000
-# puis ouvrir http://localhost:8000 dans un navigateur
-```
-
-ça lance un serveur HTTP statique. pour tester `save.php` il faut un vrai
-serveur PHP (Apache, nginx + php-fpm, ou `php -S localhost:8000`).
