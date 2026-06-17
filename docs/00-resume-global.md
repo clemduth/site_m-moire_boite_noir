@@ -36,44 +36,37 @@ exécutable et exhaustivement traçable, en rattachant chaque règle à son arti
 source. Cette trace n'est jamais montrée brute à l'usager : elle est *mise en
 forme* différemment selon le public.
 
-## Les publics et les prototypes
+Les quatre prototypes éprouvent cette proposition, chacun pour un usage et un
+public distincts.
+
+## Les quatre prototypes
 
 Un même personnage relie les scénarios : **Marie D.**, locataire d'un T1 à Lyon,
 qui reçoit une notification de dette d'ALS de **420 €** (15 janvier 2026) ; son
 droit recalculé passe à **199 €/mois**.
 
-| # | Titre | Public | Forme | Statut |
-|---|-------|--------|-------|--------|
-| [01](proto1-decision-depliable/explication/) | La décision dépliable | L'allocataire | Notification CAF augmentée | Testé |
-| [02](proto2-simulateur-de-vie/explication/) | Le simulateur de vie | L'allocataire prospectif | Simulateur à blocs · frise 12 mois | Testé |
-| [03](proto3-double-lecture/explication/) | La double lecture | Le juriste | Extension navigateur sur Légifrance | Testé |
-| [04](proto4-tour-de-calcul/explication/) | La tour de calcul | Exploration visuelle | Bâtiment isométrique 3D | Test, non finalisé |
+| # | Titre | Public | Geste de design | Statut |
+|---|-------|--------|-----------------|--------|
+| [01](proto1-decision-depliable/explication/) | La décision dépliable | L'allocataire | Expliquer une décision *déjà tombée*, couche par couche | Testé |
+| [02](proto2-simulateur-de-vie/explication/) | Le simulateur de vie | L'allocataire prospectif | Déplacer l'explication vers le *futur* : anticiper | Testé |
+| [03](proto3-double-lecture/explication/) | La double lecture | Le juriste | Convertir la transparence en *moyen de droit* | Testé |
+| [04](proto4-tour-de-calcul/explication/) | La tour de calcul | Exploration visuelle | Spatialiser un calcul complexe pour le rendre *navigable* | Test, non finalisé |
 
-- **Proto 1** explique une décision *déjà tombée*, couche par couche, à la demande.
-- **Proto 2** déplace l'explication vers le *futur* : anticiper l'effet d'un
-  changement de vie avant qu'il n'arrive.
-- **Proto 3** convertit la transparence en *moyen de droit* : instruire un recours.
-- **Proto 4** explore une *représentation visuelle* du calcul (piste de recherche).
-
-## Comment lire cette documentation
+## Organisation de cette documentation
 
 ```
 docs/
 ├── 00-resume-global.md          ← vous êtes ici
-├── site/
-│   └── organisation-du-site.md  organisation des dossiers et fichiers du site
 ├── proto1-decision-depliable/
-│   ├── code/                    copie du code (html + css + js)
-│   └── explication/             fiche de conception du prototype
+│   ├── code/                    le code du prototype
+│   └── explication/             fiche de conception détaillée
 ├── proto2-simulateur-de-vie/    (même structure)
 ├── proto3-double-lecture/       (même structure)
 └── proto4-tour-de-calcul/       (même structure)
 ```
 
 Chaque dossier `protoN/` contient **le code du prototype** (`code/`) et **une
-explication de conception** (`explication/`). Le code y est une *copie de
-référence* : la version qui tourne réellement est à la racine du site (voir
-[`site/organisation-du-site.md`](site/organisation-du-site.md)).
+explication de conception** (`explication/`).
 
 ---
 
