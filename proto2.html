@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caf · Simulateur de vie · prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/proto2.css">
+<script>
+/* accès direct au prototype : la couche test est masquée par défaut. Ajouter ?test=1 la réaffiche. */
+(function(){try{if(!new URLSearchParams(location.search).has('test')){var r=document.documentElement;r.classList.add('proto-demo');var s=document.createElement('style');s.textContent='html.proto-demo .test-overlay,html.proto-demo #test-overlay-start,html.proto-demo #test-overlay-end,html.proto-demo #test-overlay-thanks,html.proto-demo .test-topbar,html.proto-demo .test-panel,html.proto-demo .test-tuto{display:none!important;visibility:hidden!important;}html.proto-demo,html.proto-demo body{overflow:auto!important;height:auto!important;}';document.head.appendChild(s);}}catch(e){}})();
+</script>
+</head>
+<body>
+
+<!-- ============================================================================
+     COUCHE TEST UTILISATEUR
+     ============================================================================ -->
+
+<!-- ÉCRAN D'ACCUEIL -->
+<div class="test-overlay" id="test-overlay-start">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test utilisateur · Protocole 02 / 04</div>
+    <h1 class="test-overlay__title">
+      Le simulateur de vie
+      <small>Projeter ses changements à venir et anticiper leur impact sur l'ALS</small>
+    </h1>
+
+    <p class="test-overlay__lead">Bienvenue. Ce test fait partie d'un mémoire de design en DSAA sur la transparence des algorithmes publics. Le cas étudié : le calcul des aides au logement par la CAF.</p>
+
+    <p>Vous allez tester un <strong>simulateur prospectif</strong> qui permet à un allocataire d'anticiper l'impact de changements de vie (déménagement, reprise d'emploi, etc.) sur le montant de son allocation logement. Je m'intéresse à vos blocages, hésitations et critiques.</p>
+
+    <dl class="test-keyvalue">
+      <dt>Déroulé</dt><dd>Une mise en scène, une exploration libre du document, cinq tâches précises, un entretien de retour. Tout se passe dans cette même fenêtre.</dd>
+      <dt>Ce que je collecte</dt><dd>Vos réponses textuelles, les durées par phase, les blocs que vous avez utilisés. Pas de données personnelles.</dd>
+      <dt>Anonymat</dt><dd>Aucun nom ne sera publié. Pseudo ou initiales libres.</dd>
+      <dt>Arrêter</dt><dd>Vous pouvez fermer la page à tout moment. Rien n'est envoyé tant que vous n'avez pas cliqué sur "télécharger".</dd>
+    </dl>
+
+    <div class="test-consent">
+      <div class="test-consent__label">Consentement</div>
+      <ul>
+        <li>Je comprends que ce test sert à une recherche académique en design.</li>
+        <li>J'accepte que mes réponses soient analysées de manière anonyme dans ce cadre.</li>
+        <li>Je peux arrêter le test à tout moment sans justification.</li>
+      </ul>
+      <div class="test-checkbox-row">
+        <input type="checkbox" id="test-consent" />
+        <label for="test-consent">J'ai lu et j'accepte ces conditions.</label>
+      </div>
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-pseudo">Pseudo ou initiales (optionnel)</label>
+      <input type="text" class="test-input" id="test-pseudo" placeholder="ex. CD, marieD, anonyme..." />
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-profil-detail">Comment vous décririez-vous en quelques mots ?</label>
+      <input type="text" class="test-input" id="test-profil-detail" placeholder="ex. étudiante, salariée en CDD, en recherche d'emploi..." />
+    </div>
+
+    <div class="test-actions">
+      <button class="test-btn" id="test-start-btn" disabled>Commencer le test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN MISE EN SCÈNE -->
+<div class="test-overlay test-hidden" id="test-overlay-scenario">
+  <div class="test-overlay__box">
+
+    <!-- SOUS-ÉCRAN 1 / 2 : présentation du personnage -->
+    <div class="test-scenario-step" data-scenario-step="presentation">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 1 / 2</div>
+      <h1 class="test-overlay__title">
+        Vous êtes Marie D.
+        <small>Avant d'ouvrir l'outil, mettez-vous dans la peau du personnage.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Pour ce test, vous allez incarner une allocataire qui anticipe des changements à venir. Prenez quelques instants pour vous mettre dans sa situation. C'est un exercice de projection.</p>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">Situation actuelle</div>
+        <p>Vous êtes <strong>Marie D.</strong>, 32 ans, locataire d'un T1 à Lyon (zone 2, agglomération de plus de 100 000 habitants) pour un loyer de <strong>500 €</strong>. Vous travaillez à mi-temps pour <strong>1 650 € net par mois</strong> et vous touchez actuellement <strong>199 € d'ALS</strong>. Le mois dernier, vous avez reçu une notification de dette de la CAF (420 € à rembourser sur les versements précédents).</p>
+      </div>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">Ce qui s'annonce</div>
+        <p>Deux changements importants se profilent :</p>
+        <p style="margin-top: 8px;"><strong>En mai 2026</strong>, vous comptez déménager dans un T2 à 650 € de loyer (toujours en zone 2) pour préparer l'arrivée éventuelle d'un enfant.</p>
+        <p style="margin-top: 8px;"><strong>En septembre 2026</strong>, vous passez à temps plein, ce qui porte votre salaire à <strong>2 000 € net par mois</strong>.</p>
+      </div>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">Votre préoccupation</div>
+        <p>Vous voulez savoir : <strong>est-ce que ces changements vont déclencher un nouvel indu ?</strong> Est-ce que votre ALS va baisser ou augmenter ? Est-ce que vous aurez les moyens de payer le nouveau loyer ?</p>
+        <p style="margin-top: 8px;">Une amie vous a parlé d'un outil de la CAF qui permet de simuler ces situations avant qu'elles arrivent. Vous décidez de l'essayer.</p>
+      </div>
+
+      <div class="test-actions">
+        <button class="test-btn" id="test-scenario-next-btn">Continuer</button>
+      </div>
+    </div>
+
+    <!-- SOUS-ÉCRAN 2 / 2 : question d'amorce -->
+    <div class="test-scenario-step test-hidden" data-scenario-step="question">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 2 / 2</div>
+      <h1 class="test-overlay__title">
+        Votre première intuition
+        <small>Une seule question avant d'ouvrir le simulateur.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Vous êtes maintenant Marie D., vous savez ce qui s'annonce dans votre année. Prenez 30 secondes pour répondre.</p>
+
+      <div class="test-input-group" style="margin-top: 24px;">
+        <label class="test-input-group__label" for="test-q-scenario">À votre avis, qu'est-ce qui va le plus changer votre ALS dans les mois qui viennent ? Le déménagement ou le passage à temps plein ?</label>
+        <textarea class="test-textarea" id="test-q-scenario" style="min-height: 140px;" placeholder="Répondez librement, en une ou deux phrases. Pas besoin d'avoir la bonne réponse."></textarea>
+      </div>
+
+      <div class="test-actions" style="justify-content: space-between;">
+        <button class="test-btn test-btn--ghost" id="test-scenario-back-btn">‹ Retour</button>
+        <button class="test-btn" id="test-to-libre-btn">Ouvrir le simulateur</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ÉCRAN TUTO -->
+<div class="test-tuto test-hidden" id="test-tuto">
+
+  <div class="test-tuto__bubble is-active" data-target="document" id="test-tuto-bubble-1">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 1 sur 2 · À votre gauche</div>
+    <div class="test-tuto__title">Le simulateur à explorer</div>
+    <div class="test-tuto__text">
+      C'est l'outil que vous allez tester. Il propose une palette de « blocs de vie » (déménagement, reprise d'emploi, naissance...) à glisser sur une frise de 12 mois. Le graphique en haut montre l'évolution prévue de votre ALS.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-1">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-1">Suivant</button>
+    </div>
+  </div>
+
+  <div class="test-tuto__bubble" data-target="panel" id="test-tuto-bubble-2">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 2 sur 2 · À votre droite</div>
+    <div class="test-tuto__title">L'interface de test</div>
+    <div class="test-tuto__text">
+      C'est l'espace où vous répondez aux questions du test. Il est séparé du simulateur. Vos retours, vos blocages et vos impressions sont notés ici. La barre du haut suit votre progression à travers les quatre phases.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-2">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-2">Commencer l'exploration</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOOLTIP GLOSSAIRE -->
+<div class="glossary-tooltip" id="glossary-tooltip">
+  <button class="glossary-tooltip__close" id="glossary-tooltip-close" aria-label="Fermer">✕</button>
+  <div class="glossary-tooltip__title" id="glossary-tooltip-title"></div>
+  <div class="glossary-tooltip__body" id="glossary-tooltip-body"></div>
+</div>
+
+<!-- BARRE HAUTE -->
+<div class="test-topbar test-hidden" id="test-topbar">
+  <div class="test-topbar__id">PROTOCOLE 02 · SIMULATEUR DE VIE</div>
+  <div class="test-topbar__center">
+    <span id="test-topbar-phase">Exploration libre</span>
+    <div class="test-topbar__bar"><div class="test-topbar__bar-fill" id="test-progress-fill"></div></div>
+  </div>
+  <button class="test-topbar__toggle" id="test-panel-toggle">Fermer le test ›</button>
+</div>
+
+<!-- PANNEAU LATÉRAL -->
+<aside class="test-panel test-hidden" id="test-panel">
+
+  <!-- phase : exploration libre -->
+  <div class="test-panel__inner" data-panel-phase="libre">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 2 sur 4</div>
+      <div class="test-panel__title">Prise en main libre</div>
+    </div>
+    <div class="test-panel__body">
+      <p><strong>Explorez librement.</strong> Cliquez sur les blocs de la palette, placez-les sur la frise, modifiez-les. Regardez comment le graphique évolue.</p>
+      <p>Ne cherchez pas encore à résoudre le cas de Marie D. <strong>Comprenez d'abord comment le simulateur fonctionne.</strong></p>
+      <p>Pendant que vous explorez, <strong>notez ce que vous voyez, ce qui vous surprend, ce qui vous bloque</strong>. Plus vous écrivez, plus c'est utile.</p>
+
+      <div class="test-task__timer">Temps écoulé · <span id="test-timer-libre">00:00</span></div>
+
+      <div class="test-input-group">
+        <label class="test-input-group__label" for="test-q-libre">Notes libres pendant l'exploration</label>
+        <textarea class="test-textarea" id="test-q-libre" style="min-height: 180px;" placeholder="Vos surprises, vos blocages, vos intuitions..."></textarea>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="taches" style="width: 100%;">J'ai assez exploré, passer aux tâches</button>
+    </div>
+  </div>
+
+  <!-- phase : tâches -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="taches">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 3 sur 4</div>
+      <div class="test-panel__title">Tâches dirigées</div>
+    </div>
+    <div class="test-panel__body" id="test-tasks-body">
+      <p>Cinq tâches concrètes pour simuler les changements de Marie D. <strong>Utilisez le simulateur à gauche</strong>. Pour chacune, indiquez si vous avez réussi et racontez comment.</p>
+
+      <div class="test-tasks-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Tâche <strong><span id="test-task-current">1</span></strong> sur <span id="test-task-total">5</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-tasks-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-task-prev" aria-label="Tâche précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-tasks-dots"></div>
+          <button class="test-carousel-arrow" id="test-task-next" aria-label="Tâche suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="entretien" style="width: 100%;">Passer à l'entretien</button>
+    </div>
+  </div>
+
+  <!-- phase : entretien -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="entretien">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 4 sur 4</div>
+      <div class="test-panel__title">Entretien de retour</div>
+    </div>
+    <div class="test-panel__body" id="test-entretien-body">
+      <p>Dernière phase. Vos réponses à ces questions sont la matière la plus précieuse du test.</p>
+
+      <div class="test-tasks-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Question <strong><span id="test-entretien-current">1</span></strong> sur <span id="test-entretien-total">12</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-entretien-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-entretien-prev" aria-label="Question précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-entretien-dots"></div>
+          <button class="test-carousel-arrow" id="test-entretien-next" aria-label="Question suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" id="test-entretien-finish" data-test-next="fin" style="width: 100%;" disabled>Terminer le test</button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ÉCRAN FIN -->
+<div class="test-overlay test-hidden" id="test-overlay-end">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test terminé</div>
+    <h1 class="test-overlay__title">
+      Merci.
+      <small>Vos retours sont précieux pour la suite du mémoire.</small>
+    </h1>
+
+    <div class="test-end-card">
+      <div class="test-end-card__mark">FIN DU TEST</div>
+      <h2 class="test-end-card__title">À une étape près.</h2>
+      <p style="max-width: 480px; margin: 0 auto 20px; color: var(--test-ink-soft); line-height: 1.55;">Vos réponses sont enregistrées localement dans votre navigateur. Pour qu'elles me parviennent, téléchargez le fichier ci-dessous et envoyez-le moi par email.</p>
+
+      <button class="test-btn" id="test-download-btn">Télécharger mes réponses (.json)</button>
+
+      <div class="test-end-card__email">clement.duterlay@ecole-villefontaine.fr</div>
+
+      <p style="margin-top: 28px; font-size: 13px; color: var(--test-mute);">Vous pouvez fermer cette fenêtre quand vous voulez.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================================
+     /COUCHE TEST UTILISATEUR
+     ============================================================================ -->
+
+<!-- zone d'erreur (apparaît si JS plante) -->
+<div id="error-box"></div>
+
+<header class="app-header">
+  <div class="caf-badge">
+    <div class="logo">
+      <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="30,3 54,16 54,44 30,57 6,44 6,16" fill="#006bb6"/>
+        <path d="M6,40 L54,40 L54,44 L30,57 L6,44 Z" fill="#aec2e4"/>
+        <g fill="#fff">
+          <circle cx="18" cy="20" r="2"/><path d="M16,22 L20,22 L20,28 L16,28 Z"/>
+          <circle cx="30" cy="14" r="2"/><path d="M28,16 L32,16 L32,22 L28,22 Z"/>
+          <circle cx="42" cy="20" r="2"/><path d="M40,22 L44,22 L44,28 L40,28 Z"/>
+          <circle cx="18" cy="32" r="2"/><path d="M16,34 L20,34 L20,38 L16,38 Z"/>
+          <circle cx="30" cy="34" r="2"/><path d="M28,36 L32,36 L32,40 L28,40 Z"/>
+          <circle cx="42" cy="32" r="2"/><path d="M40,34 L44,34 L44,38 L40,38 Z"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <div class="title">Simulateur de vie</div>
+      <div class="subtitle">Projetez vos changements à venir</div>
+    </div>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="user-pill">Mme X · Dossier 2562915</div>
+</header>
+
+<div class="intro-bar">
+  <div class="icon">{ }</div>
+  <div class="txt">
+    <strong>Suite du dossier de Mme X.</strong> Après la notification de dette du 15 janvier, elle veut anticiper l'impact d'un déménagement et d'un passage à temps plein. Cliquez sur un bloc dans la palette pour l'ajouter à la frise.
+  </div>
+</div>
+
+<div class="main">
+  <div class="workspace">
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Évolution de votre ALS sur 12 mois</div>
+          <div class="chart-subtitle">de janvier 2026 à décembre 2026</div>
+        </div>
+      </div>
+      <div class="chart-svg-wrap">
+        <svg class="chart-svg" id="chart" viewBox="0 0 800 220" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="chart-info">
+        <div class="stat">
+          <div class="stat-label">Min</div>
+          <div class="stat-value" id="stat-min">— €</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Max</div>
+          <div class="stat-value" id="stat-max">— €</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total annuel</div>
+          <div class="stat-value" id="stat-total">— €</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Vs. situation initiale</div>
+          <div class="stat-value" id="stat-diff">— €</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================================
+         TRACE DE CALCUL (accordéon, détail mois par mois)
+         ============================================================================ -->
+    <div class="trace-card" id="trace-card">
+      <button class="trace-card__head" id="trace-toggle" type="button" aria-expanded="false">
+        <span class="trace-card__title">
+          <span class="trace-card__icon">{ }</span>
+          Trace du calcul mois par mois
+        </span>
+        <span class="trace-card__hint">
+          <span id="trace-current-month">Sélectionnez un mois</span>
+          <span class="trace-card__chevron" aria-hidden="true">▾</span>
+        </span>
+      </button>
+      <div class="trace-card__body" id="trace-body">
+        <div class="trace-months" id="trace-months">
+          <!-- onglets mois injectés par JS -->
+        </div>
+        <div class="trace-detail" id="trace-detail">
+          <p class="trace-empty">Cliquez sur un mois ci-dessus pour voir le détail du calcul d'ALS.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="assembly-card">
+      <div class="assembly-header">
+        <div class="assembly-title">Votre parcours de vie sur 12 mois</div>
+        <button class="assembly-reset" id="reset">↺ Réinitialiser</button>
+      </div>
+
+      <div class="assembly-chain-wrap">
+        <div class="assembly-chain empty" id="chain"></div>
+      </div>
+
+      <div class="edit-panel" id="edit-panel">
+        <div class="edit-panel-header">
+          <span class="edit-panel-icon" id="edit-icon">📌</span>
+          <span class="edit-panel-title" id="edit-title">Modifier ce bloc</span>
+          <button class="edit-panel-close" id="edit-close">×</button>
+        </div>
+        <div class="edit-panel-fields" id="edit-fields"></div>
+      </div>
+
+      <div class="scenario-info">
+        💡 <strong>Astuce :</strong> cliquez sur un bloc déjà placé pour modifier sa date ou ses valeurs. La courbe se recalcule en direct.
+      </div>
+    </div>
+
+  </div>
+
+  <aside class="palette-card">
+    <div class="palette-title">Palette d'événements</div>
+    <div class="palette-help">Cliquez sur un bloc pour l'ajouter à votre parcours.</div>
+
+    <div class="palette-category">
+      <div class="palette-category-title cat-logement">🏠 Logement</div>
+      <div class="palette-blocks">
+        <div class="palette-block cat-logement" data-template="demenagement-moins-cher">
+          <span class="palette-block-icon">📦</span>
+          <span class="palette-block-text">Déménagement (loyer −)</span>
+        </div>
+        <div class="palette-block cat-logement" data-template="demenagement-plus-cher">
+          <span class="palette-block-icon">🏘️</span>
+          <span class="palette-block-text">Déménagement (loyer +)</span>
+        </div>
+        <div class="palette-block cat-logement" data-template="changement-zone">
+          <span class="palette-block-icon">🗺️</span>
+          <span class="palette-block-text">Changement de zone</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-category">
+      <div class="palette-category-title cat-emploi">💼 Emploi</div>
+      <div class="palette-blocks">
+        <div class="palette-block cat-emploi" data-template="reprise-emploi">
+          <span class="palette-block-icon">🆕</span>
+          <span class="palette-block-text">Reprise d'emploi</span>
+        </div>
+        <div class="palette-block cat-emploi" data-template="perte-emploi">
+          <span class="palette-block-icon">📉</span>
+          <span class="palette-block-text">Perte d'emploi</span>
+        </div>
+        <div class="palette-block cat-emploi" data-template="augmentation">
+          <span class="palette-block-icon">📈</span>
+          <span class="palette-block-text">Augmentation</span>
+        </div>
+        <div class="palette-block cat-emploi" data-template="temps-partiel">
+          <span class="palette-block-icon">⏰</span>
+          <span class="palette-block-text">Passage temps partiel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-category">
+      <div class="palette-category-title cat-foyer">👥 Foyer</div>
+      <div class="palette-blocks">
+        <div class="palette-block cat-foyer" data-template="mise-couple">
+          <span class="palette-block-icon">💍</span>
+          <span class="palette-block-text">Mise en couple</span>
+        </div>
+        <div class="palette-block cat-foyer" data-template="separation">
+          <span class="palette-block-icon">💔</span>
+          <span class="palette-block-text">Séparation</span>
+        </div>
+        <div class="palette-block cat-foyer" data-template="naissance">
+          <span class="palette-block-icon">👶</span>
+          <span class="palette-block-text">Naissance d'un enfant</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============================================================================
+     SCRIPT — moteur de test utilisateur
+     ============================================================================ -->
+
+<!-- ============================================================================
+     SCRIPT — glossaire (terms cliquables)
+     ============================================================================ -->
+
+<script src="js/proto2.js?v=20260530" defer></script>
+<script src="js/sync-guard.js?v=20260530" defer></script>
+
+<!-- ============================================================================
+     CORRECTIF EMBARQUÉ : ÉCRAN DE REMERCIEMENT & VALIDATION INTELLIGENTE ANTI-SKIP
+     ============================================================================ -->
+<style>
+  /* Masquage propre des anciens éléments obsolètes sans casser le DOM pour vos scripts JS */
+  #test-overlay-end { display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -999 !important; }
+  .test-tuto__skip { display: none !important; visibility: hidden !important; }
+  /* Surlignage d'un champ requis vide (retiré dès que l'utilisateur écrit ou clique dedans) */
+  .test-field-error { border: 2px solid #e1000f !important; background-color: #fff4f4 !important; }
+</style>
+
+<!-- UNIQUE ÉCRAN DE REMERCIEMENT GLOBAL -->
+<div class="test-overlay" id="test-overlay-thanks" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 26, 26, 0.95); backdrop-filter: blur(4px); z-index: 999999; padding: 20px;">
+  <div class="test-overlay__box" style="background: #fff; padding: 40px; border-radius: 4px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); box-sizing: border-box;">
+    <div class="test-overlay__meta" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 16px;">Test terminé · Confirmation</div>
+    <h1 class="test-overlay__title" style="font-family: 'Open Sans', 'Spectral', sans-serif; font-weight: 700; margin-bottom: 20px; font-size: 24px; color: #161616; margin-top: 0;">
+      Merci pour votre participation !
+    </h1>
+    <p class="test-overlay__lead" style="font-family: 'Open Sans', sans-serif; margin-bottom: 32px; font-size: 15px; line-height: 1.6; color: #4a4a4a;">
+      Vos réponses et vos interactions ont bien été enregistrées et sauvegardées avec succès. Elles alimenteront directement les recherches de ce mémoire de design.
+    </p>
+    <a href="index.html" style="display: inline-block; background: #006bb6; color: #fff; padding: 12px 32px; text-decoration: none; font-weight: bold; border-radius: 4px; font-family: 'Open Sans', sans-serif; transition: background 0.2s;" onmouseover="this.style.background='#004f8a'" onmouseout="this.style.background='#006bb6'">
+      Retourner à l'accueil
+    </a>
+  </div>
+</div>
+
+<script>
+(function() {
+    // 1. Détection automatique de la fin du protocole via MutationObserver
+    function showNewThanksScreen() {
+        const thanksOverlay = document.getElementById('test-overlay-thanks');
+        if (thanksOverlay) thanksOverlay.style.setProperty('display', 'flex', 'important');
+        
+        document.querySelectorAll('.test-overlay').forEach(el => {
+            if (el.id !== 'test-overlay-thanks' && el.id !== 'test-overlay-end') {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+    }
+
+    function checkTestEnd() {
+        const oldEnd = document.getElementById('test-overlay-end');
+        if (oldEnd) {
+            if (!oldEnd.classList.contains('test-hidden') || (oldEnd.style.display && oldEnd.style.display !== 'none')) {
+                showNewThanksScreen();
+            }
+        }
+    }
+
+    const observer = new MutationObserver(checkTestEnd);
+    observer.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+
+    // 2. Moteur de validation stricte ciblé (empêche le passage si un champ requis est vide)
+    function isFieldVisible(el) {
+        if (!el.offsetParent) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.left < window.innerWidth;
+    }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-test-next], .test-carousel-arrow[id$="-next"], #test-scenario-next-btn, #test-tuto-next-1, #test-tuto-next-2, #test-to-libre-btn, #test-start-btn');
+        
+        if (btn) {
+            const activePanel = btn.closest('.test-panel__inner:not(.test-hidden), .test-overlay:not([style*="display: none"])');
+            if (activePanel) {
+                const isPhaseChange = btn.hasAttribute('data-test-next');
+                const isOverlay = activePanel.classList.contains('test-overlay');
+
+                const inputs = activePanel.querySelectorAll('textarea, input[type="text"]');
+                let allFilled = true;
+                let hiddenEmptyCount = 0;
+                
+                inputs.forEach(input => {
+                    const visible = isFieldVisible(input);
+                    
+                    // On ne valide les champs cachés que si on change de phase globale hors overlay (ex: carrousels de tâches)
+                    if (visible || (isPhaseChange && !isOverlay)) {
+                        if (input.value.trim() === '') {
+                            allFilled = false;
+                            if (visible) {
+                                input.classList.add('test-field-error');
+                                const clearErr = function() {
+                                    input.classList.remove('test-field-error');
+                                    input.removeEventListener('input', clearErr);
+                                    input.removeEventListener('focus', clearErr);
+                                };
+                                input.addEventListener('input', clearErr);
+                                input.addEventListener('focus', clearErr);
+                            } else {
+                                hiddenEmptyCount++;
+                            }
+                        }
+                    }
+                });
+                
+                if (!allFilled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    if (hiddenEmptyCount > 0) {
+                        alert("Impossible de continuer : vous avez oublié de remplir " + hiddenEmptyCount + " question(s) ou tâche(s) dans cette étape. Utilisez les flèches pour vérifier vos réponses précédentes.");
+                    } else {
+                        alert("Veuillez remplir tous les champs de texte affichés pour pouvoir avancer.");
+                    }
+                }
+            }
+        }
+    }, true);
+})();
+</script>
+
+<!-- ============================================================================
+     MODE BRUT (?brut) : la trace mois par mois affiche le code Catala brut
+     + bouton coin pour basculer lisible / brut (mode démo uniquement)
+     ============================================================================ -->
+<script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var demo = !p.has('test'), brut = p.has('brut');
+
+  if (demo){
+    var st = document.createElement('style');
+    st.textContent =
+      '.p2-corner{display:flex;align-items:center;gap:8px;position:fixed;top:14px;right:14px;z-index:9000;background:#1a1a1a;color:#f4f1ea;border:2px solid #1a1a1a;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:10px 14px;text-decoration:none;box-shadow:4px 4px 0 #ff6b35;transition:all .15s;}'
+      + '.p2-corner:hover{background:#ff6b35;border-color:#ff6b35;transform:translate(-2px,-2px);box-shadow:6px 6px 0 #1a1a1a;}.p2-corner .arr{font-size:16px;}'
+      + '.brut-codehead{background:#000;color:#ff6b35;font:600 11px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;padding:11px 18px;}'
+      + '.brut-codebox{background:#1a1a1a;color:#f4f1ea;font:12px/1.7 "JetBrains Mono",monospace;white-space:pre;overflow:auto;max-height:340px;margin:0;padding:16px 18px;tab-size:2;}'
+      + '.brut-codebox .c-com{color:#6f6a5d;font-style:italic;}.brut-codebox .c-kw{color:#ff9d5c;}.brut-codebox .c-num{color:#9db8e8;}.brut-codebox .c-typ{color:#c9a0e8;}.brut-codebox .c-res{color:#82d39d;font-weight:600;}.brut-codebox .c-hl{background:rgba(255,107,53,.22);display:inline-block;width:100%;}';
+    document.head.appendChild(st);
+    var a = document.createElement('a');
+    a.className = 'p2-corner';
+    if (brut){ a.href = location.pathname; a.innerHTML = '<span class="arr">↩</span> version lisible'; }
+    else { a.href = '?brut=1'; a.innerHTML = 'version brute <span class="arr">↗</span>'; }
+    document.body.appendChild(a);
+  }
+
+  if (!brut) return;
+
+  var TRACE = [
+    ['c-com','# ──────────────────────────────────────────────'],
+    ['c-com','# Calcul mensuel de l\u2019ALS \u00b7 mois s\u00e9lectionn\u00e9 sur la frise'],
+    ['c-com','# Articles D823-16 \u00e0 D823-17 CCH \u00b7 ex\u00e9cution Catala'],
+    ['c-com','# ──────────────────────────────────────────────'],
+    [''],
+    ['c-kw','champ d\u2019application',' CalculALSMensuel:'],
+    ['seg','  donn\u00e9e ressources_12_mois_glissants  contenu ','c-typ','argent'],
+    ['seg','  donn\u00e9e loyer                          contenu ','c-typ','argent'],
+    ['seg','  donn\u00e9e zone                           contenu ','c-typ','Zone'],
+    ['seg','  donn\u00e9e composition_foyer              contenu ','c-typ','Foyer'],
+    ['seg','  r\u00e9sultat als_du_mois                  contenu ','c-typ','argent'],
+    [''],
+    ['c-com','  # ── plafond de loyer (art. D823-16, II) ────────────'],
+    ['txt','  d\u00e9finition plafond_loyer \u00e9gal \u00e0'],
+    ['txt','    selon zone sous forme'],
+    ['txt','    -- Zone1: 504,84 \u20ac + 73,18 \u20ac * (d\u00e9cimal de personnes_charge)'],
+    ['hl','    -- Zone2: 435,24 \u20ac + 63,15 \u20ac * (d\u00e9cimal de personnes_charge)'],
+    ['txt','    -- Zone3: 407,03 \u20ac + 58,73 \u20ac * (d\u00e9cimal de personnes_charge)'],
+    ['txt','  d\u00e9finition loyer_retenu \u00e9gal \u00e0 minimum (loyer, plafond_loyer)'],
+    [''],
+    ['c-com','  # ── forfait charges et participation minimale ────────'],
+    ['txt','  d\u00e9finition forfait_charges \u00e9gal \u00e0'],
+    ['txt','    58,08 \u20ac + 13,17 \u20ac * (d\u00e9cimal de personnes_charge)'],
+    ['txt','  d\u00e9finition participation_minimale \u00e9gal \u00e0'],
+    ['txt','    (loyer_retenu + forfait_charges) * 8,5 %'],
+    [''],
+    ['c-com','  # ── taux puis participation aux ressources (D823-17) ───'],
+    ['txt','  d\u00e9finition taux_ressources \u00e9gal \u00e0'],
+    ['txt','    taux_composition_familiale + taux_loyer_arrondi'],
+    ['txt','  d\u00e9finition participation_ressources \u00e9gal \u00e0'],
+    ['txt','    (ressources_12_mois_glissants - abattement_forfaitaire)'],
+    ['txt','      * taux_ressources'],
+    ['txt','  d\u00e9finition participation_personnelle \u00e9gal \u00e0'],
+    ['txt','    participation_minimale + participation_ressources'],
+    [''],
+    ['c-com','  # ── exception : sous le plancher de ressources ───────'],
+    ['hl','  exception d\u00e9finition participation_personnelle'],
+    ['hl','    sous condition ressources_12_mois_glissants < abattement'],
+    ['hl','    cons\u00e9quence \u00e9gal \u00e0 participation_minimale'],
+    [''],
+    ['c-com','  # ── aide du mois, minoration, CRDS, arrondis ────────'],
+    ['txt','  d\u00e9finition als_brute \u00e9gal \u00e0'],
+    ['txt','    loyer_retenu + forfait_charges - participation_personnelle'],
+    ['txt','  d\u00e9finition als_du_mois \u00e9gal \u00e0'],
+    ['txt','    arrondi ((als_brute - 5,00 \u20ac) * (1 - 0,5 %)) + crds'],
+    [''],
+    ['c-com','# ═══════ valeurs du mois (recalcul\u00e9es tous les 3 mois) ═══'],
+    ['c-com','# ressources_12_mois_glissants ........ 19 800,00 \u20ac'],
+    ['c-com','# plafond_loyer (zone 2) ............... 435,24 \u20ac'],
+    ['c-com','# participation_personnelle ........... 242,45 \u20ac'],
+    ['c-res','# als_du_mois ......................... 199,00 \u20ac'],
+    [''],
+    ['c-com','# Et il faut refaire tout ceci \u00e0 chaque mois, \u00e0 chaque \u00e9v\u00e9nement.'],
+  ];
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function build(){
+    var out = '';
+    for (var i=0;i<TRACE.length;i++){
+      var r = TRACE[i], t = r[0];
+      if (t === ''){ out += '\n'; continue; }
+      if (t === 'txt'){ out += esc(r[1]) + '\n'; }
+      else if (t === 'hl'){ out += '<span class="c-hl">'+esc(r[1])+'</span>\n'; }
+      else if (t === 'c-com' || t === 'c-res'){ out += '<span class="'+t+'">'+esc(r[1])+'</span>\n'; }
+      else if (t === 'c-kw'){ out += '<span class="c-kw">'+esc(r[1])+'</span>'+(r[2]?esc(r[2]):'')+'\n'; }
+      else if (t === 'seg'){ out += esc(r[1]) + '<span class="'+r[2]+'">'+esc(r[3])+'</span>\n'; }
+    }
+    return out;
+  }
+  var RAW = '<div class="brut-codehead">Trace Catala brute \u00b7 calcul mensuel de l\u2019ALS</div><pre class="brut-codebox">' + build() + '</pre>';
+
+  function inject(){ var d = document.getElementById('trace-detail'); if (d) d.innerHTML = RAW; }
+  function start(){
+    var tog = document.getElementById('trace-toggle');
+    if (tog && tog.getAttribute('aria-expanded') === 'false'){ tog.click(); }
+    setTimeout(inject, 250);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+  document.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('#trace-months')){ setTimeout(inject, 0); }
+  });
+})();
+</script>
+
+</body>
+</html>

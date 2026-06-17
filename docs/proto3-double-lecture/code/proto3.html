@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catala — extension Légifrance · prototype</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/dsfr.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/proto3.css?v=20260527d">
+<script>
+/* accès direct au prototype : la couche test est masquée par défaut. Ajouter ?test=1 la réaffiche. */
+(function(){try{if(!new URLSearchParams(location.search).has('test')){var r=document.documentElement;r.classList.add('proto-demo');var s=document.createElement('style');s.textContent='html.proto-demo .test-overlay,html.proto-demo #test-overlay-start,html.proto-demo #test-overlay-end,html.proto-demo #test-overlay-thanks,html.proto-demo .test-topbar,html.proto-demo .test-panel,html.proto-demo .test-tuto{display:none!important;visibility:hidden!important;}html.proto-demo,html.proto-demo body{overflow:auto!important;height:auto!important;}';document.head.appendChild(s);}}catch(e){}})();
+</script>
+</head>
+<body>
+
+<!-- ============================================================================
+     COUCHE TEST UTILISATEUR — overlays et panneaux (proto 3)
+     ============================================================================ -->
+
+<!-- ÉCRAN D'ACCUEIL -->
+<div class="test-overlay" id="test-overlay-start">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test utilisateur · Protocole 03 / 04</div>
+    <h1 class="test-overlay__title">
+      La double lecture
+      <small>Instruire un dossier d'allocataire avec l'extension Catala sur Légifrance</small>
+    </h1>
+
+    <p class="test-overlay__lead">Bienvenue. Ce test fait partie d'un mémoire de design en DSAA sur la transparence des algorithmes publics. Le cas étudié : le calcul des aides au logement par la CAF.</p>
+
+    <p>Vous allez tester une <strong>extension navigateur fictive</strong> qui, sur les pages Légifrance, donne accès à la traduction exécutable d'un article de loi (via le langage Catala) et permet d'instruire un dossier précis. Je m'intéresse à vos blocages, hésitations et critiques.</p>
+
+    <dl class="test-keyvalue">
+      <dt>Déroulé</dt><dd>Une mise en scène d'un dossier, une exploration libre de l'outil, cinq tâches précises, un entretien de retour.</dd>
+      <dt>Ce que je collecte</dt><dd>Vos réponses textuelles, les durées par phase, les onglets de l'extension utilisés, les blocs générés. Pas de données personnelles.</dd>
+      <dt>Anonymat</dt><dd>Aucun nom ne sera publié. Pseudo ou initiales libres.</dd>
+      <dt>Arrêter</dt><dd>Vous pouvez fermer la page à tout moment. Rien n'est envoyé tant que vous n'avez pas cliqué sur "télécharger".</dd>
+    </dl>
+
+    <div class="test-consent">
+      <div class="test-consent__label">Consentement</div>
+      <ul>
+        <li>Je comprends que ce test sert à une recherche académique en design.</li>
+        <li>J'accepte que mes réponses soient analysées de manière anonyme dans ce cadre.</li>
+        <li>Je peux arrêter le test à tout moment sans justification.</li>
+      </ul>
+      <div class="test-checkbox-row">
+        <input type="checkbox" id="test-consent" />
+        <label for="test-consent">J'ai lu et j'accepte ces conditions.</label>
+      </div>
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-pseudo">Pseudo ou initiales (optionnel)</label>
+      <input type="text" class="test-input" id="test-pseudo" placeholder="ex. CD, juriste44, anonyme..." />
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-profil-detail">En une phrase, votre rôle ou votre pratique professionnelle</label>
+      <input type="text" class="test-input" id="test-profil-detail" placeholder="ex. avocate en droit social, juriste association, défenseur des droits..." />
+    </div>
+
+    <div class="test-actions">
+      <button class="test-btn" id="test-start-btn" disabled>Commencer le test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN MISE EN SCÈNE -->
+<div class="test-overlay test-hidden" id="test-overlay-scenario">
+  <div class="test-overlay__box">
+
+    <!-- SOUS-ÉCRAN 1 / 2 : présentation du personnage -->
+    <div class="test-scenario-step" data-scenario-step="presentation">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 1 / 2</div>
+      <h1 class="test-overlay__title">
+        Vous êtes Maître Léa Bernard
+        <small>Avocate au barreau de Lyon, spécialisée en droit social. Une cliente vient vous voir avec un dossier.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Pour ce test, vous allez incarner une avocate qui prend en charge un recours administratif. Mettez-vous dans la peau du rôle. Ce n'est pas un exercice d'opinion : c'est un exercice d'instruction.</p>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">La cliente</div>
+        <p><strong>Marie D.</strong>, 32 ans, locataire d'un T1 à Lyon, vous a contactée hier. Elle a reçu une <strong>notification de dette de 420 €</strong> de la CAF du Rhône, le 15 janvier 2026. La CAF lui demande de rembourser 4 mois d'allocation logement (ALS) qu'elle aurait perçus en trop entre septembre et décembre 2025.</p>
+        <p style="margin-top: 10px;">Marie D. conteste ce calcul. Elle dit ne pas avoir changé de situation, et ne pas comprendre d'où vient cette dette. Elle vous mandate pour examiner le dossier.</p>
+      </div>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">Votre mission</div>
+        <p>Préparer un <strong>recours amiable devant la CRA</strong> (Commission de Recours Amiable) de la CAF du Rhône. Le délai légal est de <strong>2 mois</strong> à compter de la notification, soit jusqu'au 15 mars 2026.</p>
+        <p style="margin-top: 10px;">Pour ce faire, vous devez : comprendre comment le montant a été calculé, vérifier la conformité juridique de la procédure, identifier des points contestables, et préparer l'argumentation du recours.</p>
+        <p style="margin-top: 10px;">Vous disposez de <strong>La double lecture</strong>, qui permet de lire l'algorithme officiel CAF tel qu'il a été appliqué, et de le confronter aux articles de loi correspondants.</p>
+      </div>
+
+      <div class="test-actions">
+        <button class="test-btn" id="test-scenario-next-btn">Continuer</button>
+      </div>
+    </div>
+
+    <!-- SOUS-ÉCRAN 2 / 2 : questions de cadrage -->
+    <div class="test-scenario-step test-hidden" data-scenario-step="question">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 2 / 2</div>
+      <h1 class="test-overlay__title">
+        Votre première lecture du dossier
+        <small>Deux questions avant d'ouvrir l'outil d'instruction.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Vous êtes maintenant Maître Bernard. Avant de découvrir l'extension Catala, prenez une minute pour répondre. Ces réponses servent à mesurer ce que l'outil change dans votre pratique.</p>
+
+      <div class="test-input-group" style="margin-top: 24px;">
+        <label class="test-input-group__label" for="test-q-scenario1">Aujourd'hui, sans cet outil, comment instruiriez-vous ce dossier ? Quelles sources mobiliseriez-vous ?</label>
+        <textarea class="test-textarea" id="test-q-scenario1" style="min-height: 100px;" placeholder="Vos habitudes professionnelles, en quelques phrases."></textarea>
+      </div>
+
+      <div class="test-input-group">
+        <label class="test-input-group__label" for="test-q-scenario2">Quelle est la première question que vous vous posez face à un dossier comme celui-là ?</label>
+        <textarea class="test-textarea" id="test-q-scenario2" style="min-height: 100px;" placeholder="Réponse libre."></textarea>
+      </div>
+
+      <div class="test-actions" style="justify-content: space-between;">
+        <button class="test-btn test-btn--ghost" id="test-scenario-back-btn">‹ Retour</button>
+        <button class="test-btn" id="test-to-libre-btn">Ouvrir l'outil</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ÉCRAN TUTO (mini-tour guidé en 2 étapes, entre mise en scène et exploration) -->
+<div class="test-tuto test-hidden" id="test-tuto">
+
+  <div class="test-tuto__bubble is-active" data-target="document" id="test-tuto-bubble-1">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 1 sur 2 · À votre gauche</div>
+    <div class="test-tuto__title">La double lecture</div>
+    <div class="test-tuto__text">
+      C'est l'outil que vous allez tester. Il reproduit la page Légifrance d'un article du code, avec une extension Catala qui rend le calcul lisible et exécutable. Vous pouvez ouvrir l'extension, parcourir ses trois onglets (Lecture, Génération, Projet) et instrumenter le dossier de Marie D.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-1">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-1">Suivant</button>
+    </div>
+  </div>
+
+  <div class="test-tuto__bubble" data-target="panel" id="test-tuto-bubble-2">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 2 sur 2 · À votre droite</div>
+    <div class="test-tuto__title">L'interface de test</div>
+    <div class="test-tuto__text">
+      C'est l'espace où vous répondez aux questions du test. Il est séparé de l'outil d'instruction. Vos retours, vos blocages et vos impressions sont notés ici. La barre du haut suit votre progression à travers les quatre phases.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-2">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-2">Commencer l'exploration</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOOLTIP GLOSSAIRE (singleton) -->
+<div class="glossary-tooltip" id="glossary-tooltip">
+  <button class="glossary-tooltip__close" id="glossary-tooltip-close" aria-label="Fermer">✕</button>
+  <div class="glossary-tooltip__title" id="glossary-tooltip-title"></div>
+  <div class="glossary-tooltip__body" id="glossary-tooltip-body"></div>
+</div>
+
+<!-- BARRE HAUTE -->
+<div class="test-topbar test-hidden" id="test-topbar">
+  <div class="test-topbar__id">PROTOCOLE 03 · LA DOUBLE LECTURE</div>
+  <div class="test-topbar__center">
+    <span id="test-topbar-phase">Exploration libre</span>
+    <div class="test-topbar__bar"><div class="test-topbar__bar-fill" id="test-progress-fill"></div></div>
+  </div>
+  <button class="test-topbar__toggle" id="test-panel-toggle">Fermer le test ›</button>
+</div>
+
+<!-- PANNEAU LATÉRAL -->
+<aside class="test-panel test-hidden" id="test-panel">
+
+  <!-- panel : exploration libre -->
+  <div class="test-panel__inner" data-panel-phase="libre">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 2 sur 4</div>
+      <div class="test-panel__title">Prise en main libre</div>
+    </div>
+    <div class="test-panel__body">
+      <p>Voilà la page Légifrance pour l'article concerné. L'<strong>extension Catala</strong> est installée. Une icône en haut à droite signale que la page contient un calcul détecté.</p>
+      <p><strong>Explorez l'outil librement.</strong> Ouvrez l'extension, parcourez les onglets (Lecture / Générer / Projet), comprenez sa logique.</p>
+      <p>Ne cherchez pas encore à résoudre le dossier de Marie D. <strong>Comprenez d'abord comment l'extension vous parle.</strong></p>
+
+      <div class="test-task__timer">Temps écoulé · <span id="test-timer-libre">00:00</span></div>
+
+      <div class="test-input-group">
+        <label class="test-input-group__label" for="test-q-libre">Notes — pensez tout haut comme en consultation avec un confrère</label>
+        <textarea class="test-textarea" id="test-q-libre" style="min-height: 180px;" placeholder="Sur quel onglet va votre regard en premier ? Quelle lecture domine (technique / juridique) ? Qu'est-ce que vous cherchez d'instinct sans le trouver ?"></textarea>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="taches" style="width: 100%;">J'ai assez exploré, passer aux tâches</button>
+    </div>
+  </div>
+
+  <!-- panel : tâches -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="taches">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 3 sur 4</div>
+      <div class="test-panel__title">Tâches dirigées</div>
+    </div>
+    <div class="test-panel__body" id="test-tasks-body">
+      <p>Cinq tâches concrètes pour instruire le dossier. <strong>Utilisez l'extension à gauche</strong>. Pour chacune, indiquez si vous avez réussi et racontez comment.</p>
+
+      <div class="test-tasks-carousel" id="test-tasks-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Tâche <strong><span id="test-task-current">1</span></strong> sur <span id="test-task-total">5</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-tasks-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-task-prev" aria-label="Tâche précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-tasks-dots"></div>
+          <button class="test-carousel-arrow" id="test-task-next" aria-label="Tâche suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="entretien" style="width: 100%;">Passer à l'entretien</button>
+    </div>
+  </div>
+
+  <!-- panel : entretien -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="entretien">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 4 sur 4</div>
+      <div class="test-panel__title">Entretien de retour</div>
+    </div>
+    <div class="test-panel__body" id="test-entretien-body">
+      <p>Dernière phase. Vos réponses à ces questions sont la matière la plus précieuse du test.</p>
+
+      <div class="test-tasks-carousel" id="test-entretien-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Question <strong><span id="test-entretien-current">1</span></strong> sur <span id="test-entretien-total">12</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-entretien-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-entretien-prev" aria-label="Question précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-entretien-dots"></div>
+          <button class="test-carousel-arrow" id="test-entretien-next" aria-label="Question suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" id="test-entretien-finish" data-test-next="fin" style="width: 100%;" disabled>Terminer le test</button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ÉCRAN FIN -->
+<div class="test-overlay test-hidden" id="test-overlay-end">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test terminé</div>
+    <h1 class="test-overlay__title">
+      Merci.
+      <small>Vos retours pèsent particulièrement lourd, vu le temps que vous y avez consacré.</small>
+    </h1>
+
+    <div class="test-end-card">
+      <div class="test-end-card__mark">FIN DU TEST</div>
+      <h2 class="test-end-card__title">À une étape près.</h2>
+      <p style="max-width: 480px; margin: 0 auto 20px; color: var(--test-ink-soft); line-height: 1.55;">Vos réponses sont enregistrées localement dans votre navigateur. Pour qu'elles me parviennent, téléchargez le fichier ci-dessous et envoyez-le moi par email.</p>
+
+      <button class="test-btn" id="test-download-btn">Télécharger mes réponses (.json)</button>
+
+      <div class="test-end-card__email">clement.duterlay@ecole-villefontaine.fr</div>
+
+      <p style="margin-top: 28px; font-size: 13px; color: var(--test-mute);">Vous pouvez fermer cette fenêtre quand vous voulez. Un debriefing en visio est possible si vous le souhaitez — envoyez-moi un mot.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================================
+     /COUCHE TEST UTILISATEUR
+     ============================================================================ -->
+
+<header class="fr-header">
+  <div class="header-band">
+    <div class="header-top">
+      <div class="marianne-block">
+        <div class="flag-band">
+          <div class="blue"></div>
+          <div class="white"></div>
+          <div class="red"></div>
+        </div>
+        <div class="marianne-logo">
+          <span>République</span>
+          <span>Française</span>
+        </div>
+        <div class="legifrance-title">
+          <span class="name">Légifrance</span>
+          <span class="baseline">Le service public de la diffusion du droit</span>
+        </div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="header-tools">
+        <button>Aide</button>
+        <button>Espace personnel</button>
+        <div class="extension-icon" id="ext-icon" title="Extension Catala — calcul détecté sur cette page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <div class="header-nav-inner">
+      <a href="#" class="active">Codes</a>
+      <a href="#">Textes consolidés</a>
+      <a href="#">JORF</a>
+      <a href="#">Jurisprudence</a>
+      <a href="#">Accords</a>
+      <a href="#">Recherche</a>
+    </div>
+  </nav>
+</header>
+
+<!-- breadcrumb -->
+<div class="breadcrumb">
+  <a href="#">Accueil</a>
+  <span class="sep">›</span>
+  <a href="#">Codes</a>
+  <span class="sep">›</span>
+  <a href="#">Code de la construction et de l'habitation</a>
+  <span class="sep">›</span>
+  <a href="#">Livre VIII</a>
+  <span class="sep">›</span>
+  <a href="#">Titre II</a>
+  <span class="sep">›</span>
+  <span id="breadcrumb-article">Article L823-1</span>
+</div>
+
+<!-- main -->
+<div class="main-container">
+
+  <!-- sidebar arborescence -->
+  <aside class="sidebar">
+    <h3>Plan du code</h3>
+
+    <!-- partie législative en vigueur -->
+    <div class="tree-node l1"><span class="caret">▾</span> Livre VIII · Aides personnelles au logement</div>
+    <div class="tree-node l2"><span class="caret">▾</span> Titre II · APL</div>
+
+    <div class="tree-node l3"><span class="caret">▸</span> Chapitre I · Champ d'application</div>
+    <div class="tree-node l3"><span class="caret">▸</span> Chapitre II · Détermination du droit</div>
+
+    <div class="tree-node l3"><span class="caret">▾</span> Chapitre III · Modalités de liquidation</div>
+    <div class="tree-node l4 article-link current" data-article="L823-1">
+      Article L823-1
+      <span class="catala-dot" title="Calcul Catala disponible">{ }</span>
+    </div>
+    <div class="tree-node l4 article-link" data-article="L823-2">
+      Article L823-2
+      <span class="catala-dot" title="Calcul Catala disponible">{ }</span>
+    </div>
+    <div class="tree-node l4 article-link" data-article="L823-3">
+      Article L823-3
+    </div>
+    <div class="tree-node l4 article-link" data-article="L823-4">
+      Article L823-4
+      <span class="catala-dot" title="Calcul Catala disponible">{ }</span>
+    </div>
+
+    <!-- partie historique -->
+    <div class="tree-node l1" style="margin-top:18px;"><span class="caret">▾</span> Livre III · <em>(abrogé)</em></div>
+    <div class="tree-node l2"><span class="caret">▾</span> Titre V · APL <em>(historique)</em></div>
+    <div class="tree-node l4 article-link abrogated" data-article="L351-3">
+      Article L351-3 <em>(abrogé)</em>
+      <span class="catala-dot" title="Calcul Catala disponible">{ }</span>
+    </div>
+  </aside>
+
+  <!-- article -->
+  <main>
+    <article class="article-container" id="article-container">
+      <!-- contenu injecté par JS depuis ARTICLES_DATA -->
+    </article>
+  </main>
+</div>
+
+<!-- ============ EXTENSION PANEL ============ -->
+<aside class="extension-panel" id="ext-panel">
+  <div class="ext-header">
+    <div class="ext-logo">{ }</div>
+    <div>
+      <div class="ext-title">Catala — extension</div>
+      <div class="ext-subtitle" id="ext-subtitle">Article L823-1 · alinéa 2°</div>
+    </div>
+    <button class="ext-close" id="ext-close">×</button>
+  </div>
+
+  <nav class="ext-tabs">
+    <button class="ext-tab active" data-section="lecture"><span class="num">1</span>Lecture</button>
+    <button class="ext-tab" data-section="generation"><span class="num">2</span>Générer</button>
+    <button class="ext-tab" data-section="projet"><span class="num">3</span>Projet <span class="tab-badge" id="tab-badge-projet" style="display:none;">0</span></button>
+  </nav>
+
+  <div class="ext-content">
+
+    <!-- niveau 1 : lecture (injecté par JS depuis ARTICLES_DATA) -->
+    <section class="ext-section active" data-section="lecture" id="lecture-section">
+      <!-- contenu injecté par JS -->
+    </section>
+
+    <!-- niveau 2 : génération -->
+    <section class="ext-section" data-section="generation">
+      <p style="font-size:12px;color:var(--grey-700);margin-bottom:12px;line-height:1.5;">
+        Les <strong>paramètres détectés</strong> dans cet article. Cliquez sur un paramètre pour générer un bloc exécutable, puis ajustez sa valeur.
+      </p>
+
+      <div class="params-list" id="params-list">
+        <div class="label">Paramètres détectés</div>
+        <!-- chips injectés par JS -->
+      </div>
+
+      <div id="generated-blocks" style="margin-top:14px;"></div>
+    </section>
+
+    <!-- niveau 3 : projet -->
+    <section class="ext-section" data-section="projet">
+      <div class="project-header">
+        <div class="project-name">
+          <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
+          </svg>
+          <input type="text" value="Recours APL Mme X · 2026" id="project-title">
+        </div>
+      </div>
+
+      <p class="project-help" id="project-help" style="font-size:11px;color:var(--grey-500);margin-bottom:8px;font-style:italic;">
+        Vos blocs épinglés. <strong>Glissez-les</strong> dans la zone d'assemblage ci-dessous, ou cliquez sur le bouton « + assembler ».
+      </p>
+
+      <div class="pinned-blocks" id="pinned-blocks">
+        <div class="pinned-empty">Aucun bloc épinglé. Allez dans <strong>Générer</strong> pour en créer.</div>
+      </div>
+
+      <div class="assemble-area" id="assemble-area">
+        <span class="label">Zone d'assemblage</span>
+        <div class="assembled-chain" id="assembled-chain" aria-label="Glissez vos blocs ici pour les combiner">
+          <span class="placeholder">Glissez ici les blocs à combiner</span>
+        </div>
+
+        <div class="compute-result" id="compute-result" style="display:none;">
+          <span class="label">Résultat exécuté</span>
+          <div class="value" id="result-value">—</div>
+          <div class="formula" id="result-formula"></div>
+        </div>
+
+        <button class="export-btn" id="export-btn">Exporter cette situation (PDF)</button>
+      </div>
+    </section>
+
+  </div>
+</aside>
+
+<footer>
+  <div class="inner">
+    <div class="flag-band">
+      <div class="blue"></div>
+      <div class="white"></div>
+      <div class="red"></div>
+    </div>
+    <div class="marianne-logo">
+      <span>République</span>
+      <span>Française</span>
+    </div>
+    <div style="margin-left:24px;">
+      legifrance.gouv.fr · prototype Catala · mémoire DSAA Les boîtes noires · Clément Duterlay 2026
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================================
+     SCRIPT TEST UTILISATEUR (proto 3)
+     ============================================================================ -->
+
+<!-- ============================================================================
+     GLOSSAIRE — termes techniques cliquables (proto 3 — public juriste)
+     ============================================================================ -->
+
+<script src="js/proto3.js?v=20260530" defer></script>
+<script src="js/sync-guard.js?v=20260530" defer></script>
+
+<!-- ============================================================================
+     CORRECTIF EMBARQUÉ : ÉCRAN DE REMERCIEMENT & VALIDATION INTELLIGENTE ANTI-SKIP
+     ============================================================================ -->
+<style>
+  /* Masquage propre des anciens éléments obsolètes sans casser le DOM pour vos scripts JS */
+  #test-overlay-end { display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -999 !important; }
+  .test-tuto__skip { display: none !important; visibility: hidden !important; }
+  /* Surlignage d'un champ requis vide (retiré dès que l'utilisateur écrit ou clique dedans) */
+  .test-field-error { border: 2px solid #e1000f !important; background-color: #fff4f4 !important; }
+</style>
+
+<!-- UNIQUE ÉCRAN DE REMERCIEMENT GLOBAL -->
+<div class="test-overlay" id="test-overlay-thanks" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 26, 26, 0.95); backdrop-filter: blur(4px); z-index: 999999; padding: 20px;">
+  <div class="test-overlay__box" style="background: #fff; padding: 40px; border-radius: 4px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); box-sizing: border-box;">
+    <div class="test-overlay__meta" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 16px;">Test terminé · Confirmation</div>
+    <h1 class="test-overlay__title" style="font-family: 'Open Sans', 'Spectral', sans-serif; font-weight: 700; margin-bottom: 20px; font-size: 24px; color: #161616; margin-top: 0;">
+      Merci pour votre participation !
+    </h1>
+    <p class="test-overlay__lead" style="font-family: 'Open Sans', sans-serif; margin-bottom: 32px; font-size: 15px; line-height: 1.6; color: #4a4a4a;">
+      Vos réponses et vos interactions ont bien été enregistrées et sauvegardées avec succès. Elles alimenteront directement les recherches de ce mémoire de design.
+    </p>
+    <a href="index.html" style="display: inline-block; background: #000091; color: #fff; padding: 12px 32px; text-decoration: none; font-weight: bold; border-radius: 4px; font-family: 'Marianne', Arial, sans-serif; transition: background 0.2s;" onmouseover="this.style.background='#1212a0'" onmouseout="this.style.background='#000091'">
+      Retourner à l'accueil
+    </a>
+  </div>
+</div>
+
+<script>
+(function() {
+    // 1. Détection automatique de la fin du protocole via MutationObserver
+    function showNewThanksScreen() {
+        const thanksOverlay = document.getElementById('test-overlay-thanks');
+        if (thanksOverlay) thanksOverlay.style.setProperty('display', 'flex', 'important');
+        
+        document.querySelectorAll('.test-overlay').forEach(el => {
+            if (el.id !== 'test-overlay-thanks' && el.id !== 'test-overlay-end') {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+    }
+
+    function checkTestEnd() {
+        const oldEnd = document.getElementById('test-overlay-end');
+        if (oldEnd) {
+            if (!oldEnd.classList.contains('test-hidden') || (oldEnd.style.display && oldEnd.style.display !== 'none')) {
+                showNewThanksScreen();
+            }
+        }
+    }
+
+    const observer = new MutationObserver(checkTestEnd);
+    observer.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+
+    // 2. Moteur de validation stricte ciblé (empêche le passage si un champ requis est vide)
+    function isFieldVisible(el) {
+        if (!el.offsetParent) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.left < window.innerWidth;
+    }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-test-next], .test-carousel-arrow[id$="-next"], #test-scenario-next-btn, #test-tuto-next-1, #test-tuto-next-2, #test-to-libre-btn, #test-start-btn');
+        
+        if (btn) {
+            const activePanel = btn.closest('.test-panel__inner:not(.test-hidden), .test-overlay:not([style*="display: none"])');
+            if (activePanel) {
+                const isPhaseChange = btn.hasAttribute('data-test-next');
+                const isOverlay = activePanel.classList.contains('test-overlay');
+
+                const inputs = activePanel.querySelectorAll('textarea, input[type="text"]');
+                let allFilled = true;
+                let hiddenEmptyCount = 0;
+                
+                inputs.forEach(input => {
+                    const visible = isFieldVisible(input);
+                    
+                    // On ne valide les champs cachés que si on change de phase globale hors overlay (ex: carrousels de tâches)
+                    if (visible || (isPhaseChange && !isOverlay)) {
+                        if (input.value.trim() === '') {
+                            allFilled = false;
+                            if (visible) {
+                                input.classList.add('test-field-error');
+                                const clearErr = function() {
+                                    input.classList.remove('test-field-error');
+                                    input.removeEventListener('input', clearErr);
+                                    input.removeEventListener('focus', clearErr);
+                                };
+                                input.addEventListener('input', clearErr);
+                                input.addEventListener('focus', clearErr);
+                            } else {
+                                hiddenEmptyCount++;
+                            }
+                        }
+                    }
+                });
+                
+                if (!allFilled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    if (hiddenEmptyCount > 0) {
+                        alert("Impossible de continuer : vous avez oublié de remplir " + hiddenEmptyCount + " question(s) ou tâche(s) dans cette étape. Utilisez les flèches pour vérifier vos réponses précédentes.");
+                    } else {
+                        alert("Veuillez remplir tous les champs de texte affichés pour pouvoir avancer.");
+                    }
+                }
+            }
+        }
+    }, true);
+})();
+</script>
+
+</body>
+</html>

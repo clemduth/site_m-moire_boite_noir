@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caf · Notification de dette · prototype v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/proto1.css">
+<script>
+/* accès direct au prototype : la couche test est masquée par défaut. Ajouter ?test=1 la réaffiche. */
+(function(){try{if(!new URLSearchParams(location.search).has('test')){var r=document.documentElement;r.classList.add('proto-demo');var s=document.createElement('style');s.textContent='html.proto-demo .test-overlay,html.proto-demo #test-overlay-start,html.proto-demo #test-overlay-end,html.proto-demo #test-overlay-thanks,html.proto-demo .test-topbar,html.proto-demo .test-panel,html.proto-demo .test-tuto{display:none!important;visibility:hidden!important;}html.proto-demo,html.proto-demo body{overflow:auto!important;height:auto!important;}';document.head.appendChild(s);}}catch(e){}})();
+</script>
+</head>
+<body>
+
+<!-- bouton présentation : bascule vers la version brute (visible en mode démo) -->
+<a class="to-brut-corner" href="proto1-brut-9c2f1a.html" title="Voir la version brute : la trace Catala affichée telle quelle">
+  <span class="lab">version brute</span><span class="arr">↗</span>
+</a>
+<style>
+.to-brut-corner{display:none;}
+html.proto-demo .to-brut-corner{
+  display:flex;align-items:center;gap:8px;position:fixed;top:14px;right:14px;z-index:9000;
+  background:#1a1a1a;color:#f4f1ea;border:2px solid #1a1a1a;
+  font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.04em;text-transform:uppercase;
+  padding:10px 14px;text-decoration:none;box-shadow:4px 4px 0 #ff6b35;transition:all .15s;
+}
+html.proto-demo .to-brut-corner:hover{background:#ff6b35;border-color:#ff6b35;transform:translate(-2px,-2px);box-shadow:6px 6px 0 #1a1a1a;}
+.to-brut-corner .arr{font-size:16px;}
+</style>
+
+<!-- ============================================================================
+     COUCHE TEST UTILISATEUR — overlays et panneaux ajoutés par-dessus
+     ============================================================================ -->
+
+<!-- TOOLTIP GLOSSAIRE (singleton) -->
+<div class="glossary-tooltip" id="glossary-tooltip">
+  <button class="glossary-tooltip__close" id="glossary-tooltip-close" aria-label="Fermer">✕</button>
+  <div class="glossary-tooltip__title" id="glossary-tooltip-title"></div>
+  <div class="glossary-tooltip__body" id="glossary-tooltip-body"></div>
+</div>
+
+<!-- ÉCRAN D'ACCUEIL (plein écran, masque le proto) -->
+<div class="test-overlay" id="test-overlay-start">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test utilisateur · Protocole 01 / 04</div>
+    <h1 class="test-overlay__title">
+      La décision dépliable
+      <small>Comprendre une notification de dette d'ALS reçue par courrier</small>
+    </h1>
+
+    <p class="test-overlay__lead">Bienvenue. Ce test fait partie d'un mémoire de design en DSAA qui porte sur la transparence des algorithmes publics, à travers le cas du calcul des aides au logement par la CAF.</p>
+
+    <p>Vous allez tester un outil conçu pour aider une personne à comprendre comment son aide au logement a été calculée. L'idée n'est pas de savoir si <strong>vous</strong> êtes capable d'utiliser l'outil. Ce sont vos blocages, vos hésitations et vos critiques qui m'intéressent.</p>
+
+    <dl class="test-keyvalue">
+      <dt>Déroulé</dt><dd>Une mise en scène, une exploration libre du document, cinq tâches précises, un entretien de retour. Tout se passe dans cette même fenêtre.</dd>
+      <dt>Ce que je collecte</dt><dd>Vos réponses textuelles, les durées par phase, les éléments du document que vous avez ouverts. Pas de données personnelles.</dd>
+      <dt>Anonymat</dt><dd>Aucun nom ne sera publié. Pseudo ou initiales libres.</dd>
+      <dt>Arrêter</dt><dd>Vous pouvez fermer la page à tout moment. Rien n'est envoyé tant que vous n'avez pas cliqué sur "télécharger".</dd>
+    </dl>
+
+    <div class="test-consent">
+      <div class="test-consent__label">Consentement</div>
+      <ul>
+        <li>Je comprends que ce test sert à une recherche académique en design.</li>
+        <li>J'accepte que mes réponses soient analysées de manière anonyme dans ce cadre.</li>
+        <li>Je peux arrêter le test à tout moment sans justification.</li>
+      </ul>
+      <div class="test-checkbox-row">
+        <input type="checkbox" id="test-consent" />
+        <label for="test-consent">J'ai lu et j'accepte ces conditions.</label>
+      </div>
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-pseudo">Pseudo ou initiales (optionnel)</label>
+      <input type="text" class="test-input" id="test-pseudo" placeholder="ex. CD, marie44, anonyme..." />
+    </div>
+
+    <div class="test-input-group">
+      <label class="test-input-group__label" for="test-profil">Comment vous décririez-vous en quelques mots ?</label>
+      <input type="text" class="test-input" id="test-profil" placeholder="ex. étudiante, allocataire, juriste, curieux..." />
+    </div>
+
+    <div class="test-actions">
+      <button class="test-btn" id="test-start-btn" disabled>Commencer le test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN MISE EN SCÈNE -->
+<div class="test-overlay test-hidden" id="test-overlay-scenario">
+  <div class="test-overlay__box">
+
+    <!-- SOUS-ÉCRAN 1 / 2 : présentation du personnage -->
+    <div class="test-scenario-step" data-scenario-step="presentation">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 1 / 2</div>
+      <h1 class="test-overlay__title">
+        Vous êtes Marie D.
+        <small>Avant d'ouvrir le document, mettez-vous dans la peau du personnage.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Pour ce test, vous allez incarner une personne. Prenez quelques instants pour vous mettre dans sa situation. C'est un exercice de projection.</p>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">Situation</div>
+        <p>Vous êtes <strong>Marie D.</strong>, locataire d'un T1 à Lyon, pour un loyer de <strong>500 €</strong>. Vous touchez l'<strong>ALS</strong> (Allocation de Logement Sociale) de la CAF. Vous venez de recevoir une <strong>notification de dette de 420 €</strong> du 15 janvier 2026.</p>
+        <p style="margin-top: 10px;">La CAF vous demande de rembourser 4 mois d'ALS que vous auriez perçus en trop entre septembre et décembre 2025. Votre nouveau droit ALS passe à <strong>199 €</strong> par mois. Vous n'avez rien changé à votre situation et vous ne comprenez pas d'où vient cette dette.</p>
+      </div>
+
+      <div class="test-scenario-card">
+        <div class="test-scenario-card__label">État d'esprit</div>
+        <p>Il est tard. Vous êtes seule chez vous. Vous cherchez à comprendre. Vous ressentez un mélange d'incompréhension, d'agacement, peut-être un peu d'inquiétude.</p>
+      </div>
+
+      <div class="test-actions">
+        <button class="test-btn" id="test-scenario-next-btn">Continuer</button>
+      </div>
+    </div>
+
+    <!-- SOUS-ÉCRAN 2 / 2 : la question -->
+    <div class="test-scenario-step test-hidden" data-scenario-step="question">
+      <div class="test-overlay__meta">Phase 1 sur 4 · Mise en scène · 2 / 2</div>
+      <h1 class="test-overlay__title">
+        Votre première réaction
+        <small>Une seule question avant d'ouvrir le document.</small>
+      </h1>
+
+      <p class="test-overlay__lead">Vous êtes maintenant Marie D., vous venez de recevoir cette notification. Prenez 30 secondes pour répondre.</p>
+
+      <div class="test-input-group" style="margin-top: 24px;">
+        <label class="test-input-group__label" for="test-q-scenario">Si vous étiez vraiment dans cette situation, quelle serait votre première réaction ?</label>
+        <textarea class="test-textarea" id="test-q-scenario" style="min-height: 140px;" placeholder="Répondez librement, en une ou deux phrases."></textarea>
+      </div>
+
+      <div class="test-actions" style="justify-content: space-between;">
+        <button class="test-btn test-btn--ghost" id="test-scenario-back-btn">‹ Retour</button>
+        <button class="test-btn" id="test-to-libre-btn">Ouvrir le document</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ÉCRAN TUTO (mini-tour guidé en 2 étapes, entre mise en scène et exploration) -->
+<div class="test-tuto test-hidden" id="test-tuto">
+
+  <div class="test-tuto__bubble is-active" data-target="document" id="test-tuto-bubble-1">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 1 sur 2 · À votre gauche</div>
+    <div class="test-tuto__title">Le document à explorer</div>
+    <div class="test-tuto__text">
+      C'est l'outil que vous allez tester. Il reproduit une notification d'APL reçue par la CAF, avec des éléments dépliables pour comprendre le calcul. Vous interagissez librement avec ce document.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-1">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-1">Suivant</button>
+    </div>
+  </div>
+
+  <div class="test-tuto__bubble" data-target="panel" id="test-tuto-bubble-2">
+    <div class="test-tuto__arrow"></div>
+    <div class="test-tuto__step">Étape 2 sur 2 · À votre droite</div>
+    <div class="test-tuto__title">L'interface de test</div>
+    <div class="test-tuto__text">
+      C'est l'espace où vous répondez aux questions du test. Il est séparé du document. Vos retours, vos blocages et vos impressions sont notés ici. La barre du haut suit votre progression.
+    </div>
+    <div class="test-tuto__actions">
+      <button class="test-tuto__skip" id="test-tuto-skip-2">Passer le tutoriel</button>
+      <button class="test-tuto__next" id="test-tuto-next-2">Commencer l'exploration</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- BARRE HAUTE (visible pendant le test) -->
+<div class="test-topbar test-hidden" id="test-topbar">
+  <div class="test-topbar__id" id="test-topbar-id">PROTOCOLE 01 · DÉCISION DÉPLIABLE</div>
+  <div class="test-topbar__center">
+    <span id="test-topbar-phase">Exploration libre</span>
+    <div class="test-topbar__bar"><div class="test-topbar__bar-fill" id="test-progress-fill"></div></div>
+  </div>
+  <button class="test-topbar__toggle" id="test-panel-toggle">Ouvrir le test ›</button>
+</div>
+
+<!-- PANNEAU LATÉRAL (questions du test, coulisse depuis la droite) -->
+<aside class="test-panel test-hidden" id="test-panel">
+
+  <!-- panel : phase exploration libre -->
+  <div class="test-panel__inner" data-panel-phase="libre">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 2 sur 4</div>
+      <div class="test-panel__title">Prise en main libre</div>
+    </div>
+    <div class="test-panel__body">
+      <p>Voilà le document tel que Marie D. l'aurait reçu, augmenté par <strong>l'extension Catala</strong>. Les éléments soulignés en orange peuvent être dépliés en 4 couches.</p>
+      <p><strong>Explorez librement.</strong> Cliquez partout, ouvrez les éléments qui vous intriguent. Lisez comme vous liriez une vraie notification.</p>
+      <p>Pendant que vous explorez, <strong>notez ce que vous voyez, ce que vous cherchez, ce qui vous surprend, ce qui vous bloque</strong>. Plus vous écrivez, plus c'est utile.</p>
+
+      <div class="test-task__timer">Temps écoulé · <span id="test-timer-libre">00:00</span></div>
+
+      <div class="test-input-group">
+        <label class="test-input-group__label" for="test-q-libre">Notes — pense tout haut</label>
+        <textarea class="test-textarea" id="test-q-libre" style="min-height: 180px;" placeholder="Vos surprises, vos blocages, vos intuitions..."></textarea>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="taches" style="width: 100%;">J'ai assez exploré, passer aux tâches</button>
+    </div>
+  </div>
+
+  <!-- panel : phase tâches -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="taches">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 3 sur 4</div>
+      <div class="test-panel__title">Tâches dirigées</div>
+    </div>
+    <div class="test-panel__body" id="test-tasks-body">
+      <p>Cinq tâches concrètes. Pour chacune, essayez d'accomplir ce qui est demandé <strong>en utilisant le document à gauche</strong>. Indiquez ensuite si vous avez réussi et racontez brièvement comment.</p>
+
+      <div class="test-tasks-carousel" id="test-tasks-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Tâche <strong><span id="test-task-current">1</span></strong> sur <span id="test-task-total">5</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-tasks-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-task-prev" aria-label="Tâche précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-tasks-dots"></div>
+          <button class="test-carousel-arrow" id="test-task-next" aria-label="Tâche suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" data-test-next="entretien" style="width: 100%;">Passer à l'entretien</button>
+    </div>
+  </div>
+
+  <!-- panel : phase entretien -->
+  <div class="test-panel__inner test-hidden" data-panel-phase="entretien">
+    <div class="test-panel__header">
+      <div class="test-panel__phase">Phase 4 sur 4</div>
+      <div class="test-panel__title">Entretien de retour</div>
+    </div>
+    <div class="test-panel__body" id="test-entretien-body">
+      <p>Dernière phase. Vos réponses à ces questions sont la matière la plus précieuse du test.</p>
+
+      <div class="test-tasks-carousel" id="test-entretien-carousel">
+        <div class="test-tasks-carousel__indicator">
+          Question <strong><span id="test-entretien-current">1</span></strong> sur <span id="test-entretien-total">12</span>
+        </div>
+        <div class="test-tasks-carousel__stage" id="test-entretien-container"></div>
+        <div class="test-tasks-carousel__nav">
+          <button class="test-carousel-arrow" id="test-entretien-prev" aria-label="Question précédente">‹</button>
+          <div class="test-tasks-carousel__dots" id="test-entretien-dots"></div>
+          <button class="test-carousel-arrow" id="test-entretien-next" aria-label="Question suivante">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="test-panel__footer">
+      <button class="test-btn" id="test-entretien-finish" data-test-next="fin" style="width: 100%;" disabled>Terminer le test</button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ÉCRAN FIN (plein écran) -->
+<div class="test-overlay test-hidden" id="test-overlay-end">
+  <div class="test-overlay__box">
+    <div class="test-overlay__meta">Test terminé</div>
+    <h1 class="test-overlay__title">
+      Merci.
+      <small>Vos retours sont précieux pour la suite du mémoire.</small>
+    </h1>
+
+    <div class="test-end-card">
+      <div class="test-end-card__mark">FIN DU TEST</div>
+      <h2 class="test-end-card__title">À une étape près.</h2>
+      <p style="max-width: 480px; margin: 0 auto 20px; color: var(--test-ink-soft); line-height: 1.55;">Vos réponses sont enregistrées localement dans votre navigateur. Pour qu'elles me parviennent, téléchargez le fichier ci-dessous et envoyez-le moi par email.</p>
+
+      <button class="test-btn" id="test-download-btn">Télécharger mes réponses (.json)</button>
+
+      <div class="test-end-card__email">clement.duterlay@ecole-villefontaine.fr</div>
+
+      <p style="margin-top: 28px; font-size: 13px; color: var(--test-mute);">Vous pouvez fermer cette fenêtre quand vous voulez.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================================
+     /COUCHE TEST UTILISATEUR
+     ============================================================================ -->
+
+<!-- intro -->
+<div class="intro-banner">
+  <div class="icon">{ }</div>
+  <div class="txt">
+    <strong>Notification de dette CAF · 15/01/2026</strong> — version dépliée par l'extension Catala. Chaque élément <strong style="color:var(--catala-orange);">souligné en orange</strong> peut être déplié en 4 couches.
+    <div class="layers-legend">
+      <span class="leg"><span class="swatch" style="background:var(--layer-1-color);"></span>1 · En clair</span>
+      <span class="leg"><span class="swatch" style="background:var(--layer-2-color);"></span>2 · Loi</span>
+      <span class="leg"><span class="swatch" style="background:var(--layer-3-color);"></span>3 · Code &amp; responsable</span>
+      <span class="leg"><span class="swatch" style="background:var(--layer-4-color);"></span>4 · Pourquoi cette règle</span>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="collapse-all">Tout replier</button>
+  <button class="ctrl-btn primary" id="expand-all">Tout déplier</button>
+</div>
+
+<div class="paper">
+
+  <div class="letter-top">
+    <div class="left-col">
+      <div class="caf-logo">
+        <div class="hex">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="30,3 54,16 54,44 30,57 6,44 6,16" fill="#006bb6" stroke="#fff" stroke-width="0.6"/>
+            <path d="M6,40 L54,40 L54,44 L30,57 L6,44 Z" fill="#aec2e4"/>
+            <g fill="#fff">
+              <circle cx="18" cy="20" r="2"/>
+              <path d="M16,22 L20,22 L20,28 L16,28 Z M14,18 L18,15 L17,17 Z M22,18 L18,15 L19,17 Z"/>
+              <circle cx="30" cy="14" r="2"/>
+              <path d="M28,16 L32,16 L32,22 L28,22 Z M26,12 L30,9 L29,11 Z M34,12 L30,9 L31,11 Z"/>
+              <circle cx="42" cy="20" r="2"/>
+              <path d="M40,22 L44,22 L44,28 L40,28 Z M38,18 L42,15 L41,17 Z M46,18 L42,15 L43,17 Z"/>
+              <circle cx="18" cy="32" r="2"/>
+              <path d="M16,34 L20,34 L20,38 L16,38 Z M14,30 L18,27 L17,29 Z M22,30 L18,27 L19,29 Z"/>
+              <circle cx="30" cy="34" r="2"/>
+              <path d="M28,36 L32,36 L32,40 L28,40 Z M26,32 L30,29 L29,31 Z M34,32 L30,29 L31,31 Z"/>
+              <circle cx="42" cy="32" r="2"/>
+              <path d="M40,34 L44,34 L44,38 L40,38 Z M38,30 L42,27 L41,29 Z M46,30 L42,27 L43,29 Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="label">Allocations Familiales</div>
+      </div>
+      <div class="caf-fr">caf<span style="font-size:18px;line-height:1;margin:0 1px;">·</span>fr</div>
+      <hr>
+      <div class="field"><div class="field-label">N° Dossier :</div><div class="field-value">2562915</div></div>
+      <div class="field"><div class="field-label">Références :</div><div class="field-value">IN4 002</div></div>
+      <hr>
+      <div class="field">
+        <div class="field-label">Nous contacter :</div>
+        <div class="field-value">Nous téléphoner :</div>
+        <div class="contact-3230">
+          <span class="num">3230</span>
+          <span class="pill">Service<br>gratuit<br>+ prix appel</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Nous écrire :</div>
+        <div class="field-value">Caf du Rhône<br>67 boulevard Vivier-Merle<br>69409 LYON CEDEX 03</div>
+      </div>
+      <div class="field"><div class="field-label">Tous nos contacts sur caf.fr</div></div>
+      <hr>
+      <div class="field"><div class="field-label">Dossier suivi par :</div><div class="field-value">N.D</div></div>
+    </div>
+
+    <div class="right-col">
+      <h1 class="doc-title">Votre dossier Caf<strong>Notification de dette</strong></h1>
+      <div class="recipient-block">
+        <div class="recipient-num">247</div>
+        MME MARIE D.<br>
+        APPARTEMENT 4 RÉSIDENCE LES TILLEULS<br>
+        12 RUE DES LILAS<br>
+        69003 LYON
+      </div>
+    </div>
+  </div>
+
+  <div class="letter-body">
+    <div class="letter-date">Le 15/01/2026</div>
+    <p>Madame,</p>
+
+    <p>Compte tenu des <span class="deployable" data-key="informations">informations en notre possession</span>, nous avons procédé à la régularisation de vos droits aux Prestations Familiales.</p>
+
+    <!-- INFORMATIONS -->
+    <div class="unfold-panel" data-panel="informations">
+      <div class="unfold-header">
+        <span class="unfold-tag">Origine</span>
+        <span class="unfold-title">D'où viennent ces « informations » ?</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">Ces informations ne viennent pas de vous. Elles arrivent automatiquement d'autres administrations.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">Direction générale des Finances publiques</span><span class="val">Revenu fiscal 2024</span></div>
+          <div class="row"><span class="lbl">France Travail</span><span class="val">Périodes d'activité</span></div>
+          <div class="row"><span class="lbl">Employeur (via DSN)</span><span class="val">Salaires mensuels</span></div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> vous n'avez rien à déclarer pour ces données. La CAF les reçoit et les utilise sans vous prévenir au préalable.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="informations-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="informations-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="informations-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="informations-2">
+        <div class="legal-card">
+          <div class="law-tag">Article L98 A · Livre des procédures fiscales</div>
+          <div class="law-title">Transmission des données fiscales aux organismes sociaux</div>
+          <div class="law-quote">L'administration fiscale transmet aux organismes et services chargés de la gestion d'un régime obligatoire de sécurité sociale les renseignements nécessaires à la liquidation et au contrôle des prestations dont ils ont la charge.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031813843/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+        <div class="legal-card">
+          <div class="law-tag">Article L152 · Livre des procédures fiscales</div>
+          <div class="law-title">Communication aux organismes de protection sociale</div>
+          <div class="law-quote">Les agents de l'administration fiscale communiquent aux organismes et services de protection sociale les renseignements nécessaires à l'établissement de l'assiette, au calcul et au contrôle des prestations qu'ils servent.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044990262/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="informations-3">
+        <div class="responsible-card">
+          <div class="responsible-avatar">DG</div>
+          <div class="responsible-info">
+            <div class="name">DGFiP</div>
+            <div class="role">Transmet le revenu fiscal de référence</div>
+            <span class="source">flux DGFiP-CNAF (DRM) · 22/12/2025</span>
+          </div>
+        </div>
+        <div class="responsible-card">
+          <div class="responsible-avatar">FT</div>
+          <div class="responsible-info">
+            <div class="name">France Travail</div>
+            <div class="role">Transmet vos périodes d'inscription/désinscription</div>
+            <span class="source">flux PE-CAF · 05/01/2026</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="informations-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">Le programme « Dites-le-nous-une-fois »</div>
+          <p>Depuis 2016, la doctrine de l'État est de ne plus redemander aux usagers des informations que l'administration détient déjà. L'objectif affiché est de simplifier les démarches.</p>
+          <p>Le revers : <strong>vous ne savez plus précisément ce qui est transmis, par qui, ni à quel moment</strong>. La décision arrive avant que vous puissiez la vérifier ou la contester en amont.</p>
+          <div class="why-fact"><strong>À retenir :</strong> selon le Défenseur des droits, la dématérialisation et l'automatisation des échanges renforcent l'écart entre l'allocataire et les décisions qui le concernent.</div>
+          <div class="why-source">DITP, programme « Dites-le-nous-une-fois », 2016 ; Défenseur des droits, rapports 2019, 2022 et 2024 sur la dématérialisation des services publics.</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Nous avons donc étudié vos droits. Ils changent à partir du 01.09.2025.</p>
+
+    <p>Il apparaît <span class="deployable" data-key="apres-calcul">après calcul</span> que pour L'ALLOCATION DE LOGEMENT SOCIALE (ALS) vous avez reçu <span class="deployable" data-key="recu">1 213,00 €</span> alors que vous aviez droit à <span class="deployable" data-key="droit">793,00 €</span>. <strong>VOUS NOUS DEVEZ <span class="deployable" data-key="dette">420,00 €</span></strong>.</p>
+
+    <!-- APRES CALCUL -->
+    <div class="unfold-panel" data-panel="apres-calcul">
+      <div class="unfold-header">
+        <span class="unfold-tag">Calcul</span>
+        <span class="unfold-title">Quel calcul ?</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">L'ALS suit une formule unique du barème national.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">Loyer plafonné</span><span class="val">450,00 €</span></div>
+          <div class="row"><span class="lbl">+ Charges forfaitaires</span><span class="val">53,99 €</span></div>
+          <div class="row"><span class="lbl">− Loyer minimal</span><span class="val">38,80 €</span></div>
+          <div class="row"><span class="lbl">− Participation personnelle</span><span class="val">266,94 €</span></div>
+          <div class="row total"><span class="lbl">ALS mensuel</span><span class="val">198,25 €</span></div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> chaque mois, votre droit dépend de 4 paramètres. Un seul qui bouge et le montant change.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="apres-calcul-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="apres-calcul-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="apres-calcul-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="apres-calcul-2">
+        <div class="legal-card">
+          <div class="law-tag">Article L831-1 · Code de la sécurité sociale</div>
+          <div class="law-title">Régime de l'allocation de logement sociale (ALS)</div>
+          <div class="law-quote">L'allocation de logement est attribuée aux personnes qui ne relèvent ni de l'aide personnalisée au logement, ni de l'allocation de logement familiale, et qui occupent à titre de résidence principale un logement remplissant les conditions de décence et de peuplement.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031741668/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+        <div class="legal-card">
+          <div class="law-tag">Article R822-1 · Code de la construction et de l'habitation</div>
+          <div class="law-title">Paramètres du barème (communs aux 3 aides au logement)</div>
+          <div class="law-quote">Le montant de l'aide au logement est calculé selon un barème comportant un loyer plafonné, un forfait charges, un loyer minimal et une participation personnelle fonction des ressources, dont les paramètres sont fixés annuellement par arrêté.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038884027/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="apres-calcul-3">
+<div class="catala-block"><span class="kw">declaration scope</span> <span class="var">CalculALS</span>:
+  <span class="kw">input</span> loyer_plafonne     <span class="kw">content</span> <span class="kw">money</span>
+  <span class="kw">input</span> charges_forfait    <span class="kw">content</span> <span class="kw">money</span>
+  <span class="kw">input</span> loyer_minimal      <span class="kw">content</span> <span class="kw">money</span>
+  <span class="kw">input</span> participation_pers <span class="kw">content</span> <span class="kw">money</span>
+  <span class="kw">output</span> als_mensuel        <span class="kw">content</span> <span class="kw">money</span>
+
+<span class="kw">scope</span> <span class="var">CalculALS</span>:
+  <span class="kw">definition</span> als_mensuel <span class="kw">equals</span>
+    <span class="hl">loyer_plafonne + charges_forfait
+    - loyer_minimal - participation_pers</span></div>
+        <div class="responsible-card">
+          <div class="responsible-avatar">CN</div>
+          <div class="responsible-info">
+            <div class="name">CNAF — Direction des prestations</div>
+            <div class="role">Définit la formule de calcul dans CRISTAL</div>
+            <span class="source">CRISTAL v.2025-09</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="apres-calcul-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">Une logique différentielle commune aux trois aides</div>
+          <p>La formule ne calcule pas une aide forfaitaire. Elle calcule la <strong>différence</strong> entre ce que l'État estime que vous devriez payer (loyer plafonné + frais) et ce que vous devriez assumer seul (participation personnelle).</p>
+          <p>Cette logique a été posée d'abord par la <strong>loi du 16 juillet 1971</strong>, qui a créé l'ALS pour les personnes n'ayant pas accès à l'ALF, puis étendue par la <strong>loi du 3 janvier 1977</strong> qui a institué l'APL pour le parc conventionné. Les trois aides obéissent depuis au même barème technique.</p>
+          <div class="why-fact"><strong>À retenir :</strong> les plafonds de loyer sont actualisés moins vite que les loyers réels. Le montant aidé baisse mécaniquement en zone tendue, même quand la loi n'a pas changé.</div>
+          <div class="why-source">Loi n°71-582 du 16 juillet 1971 (création de l'ALS) ; loi n°77-1 du 3 janvier 1977 (création de l'APL) ; rapports parlementaires sur l'évolution des plafonds.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1213 RECU -->
+    <div class="unfold-panel" data-panel="recu">
+      <div class="unfold-header">
+        <span class="unfold-tag">Donnée</span>
+        <span class="unfold-title">D'où viennent les 1 213 € ?</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">C'est la somme versée sur votre compte de septembre à décembre 2025.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">Sept 2025</span><span class="val pos">303,25 €</span></div>
+          <div class="row"><span class="lbl">Oct 2025</span><span class="val pos">303,25 €</span></div>
+          <div class="row"><span class="lbl">Nov 2025</span><span class="val pos">303,25 €</span></div>
+          <div class="row"><span class="lbl">Déc 2025</span><span class="val pos">303,25 €</span></div>
+          <div class="row total"><span class="lbl">Total versé</span><span class="val">1 213,00 €</span></div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> chaque mensualité a été calculée sur des données qui ont été révisées depuis.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="recu-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="recu-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="recu-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="recu-2">
+        <div class="legal-card">
+          <div class="law-tag">Article R831-13 · Code de la sécurité sociale</div>
+          <div class="law-title">Versement mensuel de l'allocation de logement sociale</div>
+          <div class="law-quote">L'allocation est versée mensuellement à terme échu sur la base des ressources et de la situation de l'allocataire, déclarées trimestriellement ou recueillies par échange avec les administrations partenaires.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006073189/LEGISCTA000031741684/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+          <!-- TODO vérif Légifrance : numéro exact d'article R831-* à confirmer -->
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="recu-3">
+        <div class="responsible-card">
+          <div class="responsible-avatar">CR</div>
+          <div class="responsible-info">
+            <div class="name">CRISTAL — moteur de versement</div>
+            <div class="role">Application interne CNAF ordonnançant les paiements ALS</div>
+            <span class="source">CRISTAL · code prestation 6541</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="recu-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">La réforme de la « contemporanéisation » des APL</div>
+          <p>Depuis le 1<sup>er</sup> janvier 2021, les aides au logement sont calculées sur les <strong>douze derniers mois glissants</strong> de revenus, et non plus sur les revenus de l'année N-2. Cette réforme dite de « contemporanéisation » devait réduire les écarts entre versé et dû.</p>
+          <p>Elle a aussi augmenté la fréquence des recalculs : tous les trois mois, votre dossier est révisé, et chaque révision peut produire un trop-perçu ou un sous-paiement rétroactif.</p>
+          <div class="why-fact"><strong>À retenir :</strong> selon le rapport sénatorial de Dominique Estrosi Sassone (nov. 2021), jusqu'à <strong>3 % des versements mensuels</strong> étaient erronés la première année — soit près de <strong>200 000 allocataires</strong>.<!-- TODO vérif chiffres rapport Estrosi Sassone 2021 --></div>
+          <div class="why-source">Décret n°2019-1574 du 30 décembre 2019 ; rapport sénatorial Estrosi Sassone sur la réforme des APL, novembre 2021.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 793 DROIT -->
+    <div class="unfold-panel" data-panel="droit">
+      <div class="unfold-header">
+        <span class="unfold-tag">Donnée</span>
+        <span class="unfold-title">Pourquoi 793 € au lieu de 1 213 € ?</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">Vos ressources prises en compte ont été recalculées avec le revenu 2024 transmis par les impôts.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">ALS recalculé / mois</span><span class="val">198,25 €</span></div>
+          <div class="row"><span class="lbl">× 4 mois (sept → déc 2025)</span><span class="val">793,00 €</span></div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> votre droit baisse parce qu'une seule donnée a changé : votre revenu déclaré aux impôts.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="droit-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="droit-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="droit-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="droit-2">
+        <div class="legal-card">
+          <div class="law-tag">Article R822-2 · Code de la construction et de l'habitation</div>
+          <div class="law-title">Ressources prises en compte</div>
+          <div class="law-quote">Les ressources retenues sont celles perçues au cours des douze mois précédant le mois de référence. Toutefois, en cas de variation significative, une révision peut intervenir.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038884030/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="droit-3">
+        <div class="responsible-card">
+          <div class="responsible-avatar">DG</div>
+          <div class="responsible-info">
+            <div class="name">DGFiP</div>
+            <div class="role">A transmis le revenu fiscal de référence 2024 le 22/12/2025</div>
+            <span class="source">RFR 2024 (case 1AJ et suivantes)</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="droit-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">Le revenu fiscal comme étalon administratif</div>
+          <p>Le calcul des aides au logement dépend du <strong>revenu fiscal de référence (RFR)</strong>, un chiffre annuel calculé par les impôts. Quand le RFR augmente — prime, héritage, revenus exceptionnels — votre droit baisse mécaniquement, même si votre situation réelle n'a pas changé.</p>
+          <p>Le RFR a été créé par la <strong>loi de finances pour 1997</strong> (article 1417 du Code général des impôts). Il est utilisé pour de nombreuses aides parce qu'il est <strong>déjà calculé pour les impôts</strong>. Il est donc pratique pour l'administration, mais il ne reflète pas toujours la capacité réelle à payer un loyer mois après mois.</p>
+          <div class="why-fact"><strong>À retenir :</strong> le RFR est annuel. Vos revenus, eux, peuvent fluctuer chaque mois. Le décalage est structurel.</div>
+          <div class="why-source">Loi de finances pour 1997, article 1417 du CGI (création du RFR).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 420 DETTE -->
+    <div class="unfold-panel" data-panel="dette">
+      <div class="unfold-header">
+        <span class="unfold-tag">Dette</span>
+        <span class="unfold-title">Comment on arrive à 420 € ?</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">La dette est la différence entre versé et dû.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">Versé entre sept et déc 2025</span><span class="val pos">1 213,00 €</span></div>
+          <div class="row"><span class="lbl">Dû après recalcul</span><span class="val">793,00 €</span></div>
+          <div class="row total"><span class="lbl">Votre dette</span><span class="val neg">420,00 €</span></div>
+        </div>
+        <div class="schema">
+          <div class="schema-bar">
+            <div class="seg due" style="flex: 793;">793 € dû</div>
+            <div class="seg over" style="flex: 420;">420 € trop perçu</div>
+          </div>
+          <div class="schema-legend">
+            <div class="item"><span class="dot" style="background:var(--caf-blue);"></span>Ce qui vous était dû</div>
+            <div class="item"><span class="dot" style="background:#c62828;"></span>À rembourser</div>
+          </div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> environ 105 € par mois ont été versés en trop pendant 4 mois.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="dette-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="dette-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="dette-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="dette-2">
+        <div class="legal-card">
+          <div class="law-tag">Article L553-2 · Code de la sécurité sociale</div>
+          <div class="law-title">Recouvrement des prestations indûment versées</div>
+          <div class="law-quote">Tout paiement indu de prestations familiales peut, sous réserve des dispositions de l'article L. 553-1, être récupéré par retenue sur les prestations à venir.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043807527/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+        <div class="legal-card">
+          <div class="law-tag">Article L835-3 · Code de la sécurité sociale</div>
+          <div class="law-title">Recouvrement de l'allocation de logement indûment versée</div>
+          <div class="law-quote">Toute prestation d'allocation de logement indûment versée peut être récupérée par retenue sur les allocations à venir ou, à défaut, par tout moyen approprié.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043807524/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="dette-3">
+        <div class="responsible-card">
+          <div class="responsible-avatar">CN</div>
+          <div class="responsible-info">
+            <div class="name">CNAF — gestion des indus</div>
+            <div class="role">Détecte automatiquement les écarts versé / dû</div>
+            <span class="source">CRISTAL · module indus · code 8120</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="dette-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">Quand l'erreur n'est pas la vôtre</div>
+          <p>La règle d'origine, issue de la création de la sécurité sociale en 1945, prévoyait que tout trop-perçu devait être remboursé — sans distinguer qui en était à l'origine. Cette logique « comptable » est toujours en vigueur.</p>
+          <p>La mission conjointe <strong>IGAS / IGF de 2013</strong> sur les indus a pourtant établi que toutes les erreurs ne viennent pas de l'allocataire.</p>
+          <div class="why-timeline">
+            <div class="ev"><span class="date">1945</span>Création de la sécurité sociale. Règle : tout indu est remboursable.</div>
+            <div class="ev"><span class="date">2008</span>Loi de financement : récupération automatique sur prestations à venir.</div>
+            <div class="ev"><span class="date">2013</span>Mission IGAS/IGF sur les indus : 3,3 millions d'indus détectés par an, total 2 milliards d'euros.<!-- TODO vérif chiffres rapport IGAS-IGF 2013 --></div>
+            <div class="ev"><span class="date">2021</span>Réforme de la contemporanéisation des APL : recalcul tous les trois mois.</div>
+          </div>
+          <div class="why-fact"><strong>À retenir :</strong> selon la mission IGAS/IGF de 2013, <strong>10 à 20 % des indus</strong> sont imputables à des erreurs des caisses elles-mêmes. Une « remise de dette » peut être demandée dans ces cas.<!-- TODO vérif chiffre 10-20% --></div>
+          <div class="why-source">Rapport IGF n°2013-M-050 et IGAS n°2013-076R sur les indus de prestations sociales.</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Pour vous permettre de rembourser cette somme, nous retiendrons <span class="deployable" data-key="retenue">57,00 €</span> sur vos allocations à partir de FEVRIER 2026.</p>
+
+    <!-- 57 RETENUE -->
+    <div class="unfold-panel" data-panel="retenue">
+      <div class="unfold-header">
+        <span class="unfold-tag">Calcul</span>
+        <span class="unfold-title">Comment le montant de la retenue est fixé</span>
+        <button class="unfold-close">×</button>
+      </div>
+      <div class="layer-1">
+        <div class="lead">La retenue dépend d'un barème qui croise quatre critères.</div>
+        <div class="formula-box">
+          <div class="row"><span class="lbl">Situation familiale</span><span class="val">Personne seule</span></div>
+          <div class="row"><span class="lbl">Ressources mensuelles</span><span class="val">≤ 1 200 €</span></div>
+          <div class="row"><span class="lbl">Charges de logement</span><span class="val">450 €</span></div>
+          <div class="row"><span class="lbl">Total prestations</span><span class="val">199 €</span></div>
+          <div class="row total"><span class="lbl">Retenue mensuelle</span><span class="val">57,00 €</span></div>
+        </div>
+        <div class="concretely">💡 <strong>Concrètement :</strong> environ 29 % de votre prestation sera retenue pendant 8 mois.</div>
+      </div>
+      <div class="layer-actions">
+        <button class="layer-link layer-2-link" data-target="retenue-2">Loi</button>
+        <button class="layer-link layer-3-link" data-target="retenue-3">Code &amp; responsable</button>
+        <button class="layer-link layer-4-link" data-target="retenue-4">Pourquoi cette règle</button>
+      </div>
+      <div class="layer-2-content" data-layer2="retenue-2">
+        <div class="legal-card">
+          <div class="law-tag">Article R553-1 · Code de la sécurité sociale</div>
+          <div class="law-title">Barème de retenue sur prestations</div>
+          <div class="law-quote">Le recouvrement s'effectue par retenue sur les prestations à venir, dans la limite d'un pourcentage de ces prestations fixé par décret en fonction de la composition du foyer, des ressources et des charges.</div>
+          <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033712517/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        </div>
+      </div>
+      <div class="layer-3-content" data-layer3="retenue-3">
+        <div class="responsible-card">
+          <div class="responsible-avatar">CN</div>
+          <div class="responsible-info">
+            <div class="name">CNAF — module recouvrement</div>
+            <div class="role">Le pourcentage exact n'est pas publié en open data. Un échéancier sur 12 mois max peut être négocié.</div>
+            <span class="source">CRISTAL · module recouvrement</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-4-content" data-layer4="retenue-4">
+        <div class="why-card">
+          <div class="why-tag">Pourquoi cette règle existe</div>
+          <div class="why-title">Une logique d'équilibre comptable</div>
+          <p>Le mécanisme de retenue automatique sur les prestations à venir a été pensé pour <strong>garantir le recouvrement</strong> sans passer par un huissier. C'est efficace pour l'administration.</p>
+          <p>Mais il s'applique uniformément, <strong>quelle que soit l'origine de l'indu</strong>. L'allocataire est mis à contribution avant même qu'on n'établisse sa responsabilité dans le trop-perçu.</p>
+          <div class="why-fact"><strong>À retenir :</strong> la mission IGAS/IGF de 2013 estimait à <strong>80 %</strong> la part des indus recouvrée par prélèvement direct sur prestations. Les allocataires peuvent demander une révision ou un échéancier.<!-- TODO vérif chiffre 80% rapport IGAS-IGF 2013 --></div>
+          <div class="why-source">Décret n°2009-988 du 20 août 2009 ; rapport IGAS/IGF 2013 sur les indus de prestations sociales.</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Pour plus d'information, voir au dos.</p>
+
+    <div class="signature">
+      Florence DEVYNCK, directrice.
+      <div class="sign-img">~~ƒD~~</div>
+    </div>
+  </div>
+
+  <div class="section-title">VOS DROITS</div>
+  <div class="bullet-title">• A partir de JANV 2026</div>
+
+  <div class="rights-table">
+    <table>
+      <thead>
+        <tr>
+          <th>ALS</th><th></th><th></th><th></th>
+          <th>Retenue</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="deployable" data-key="als-final">199,00</span></td>
+          <td></td><td></td><td></td><td></td>
+          <td class="total-cell">199,00 €</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ALS FINAL 199 -->
+  <div class="unfold-panel" data-panel="als-final" style="margin: 0 32px 16px;">
+    <div class="unfold-header">
+      <span class="unfold-tag">Droit</span>
+      <span class="unfold-title">Pourquoi 199 € à partir de janvier 2026 ?</span>
+      <button class="unfold-close">×</button>
+    </div>
+    <div class="layer-1">
+      <div class="lead">C'est votre nouveau droit ALS recalculé.</div>
+      <div class="formula-box">
+        <div class="row"><span class="lbl">ALS recalculé</span><span class="val">198,25 €</span></div>
+        <div class="row"><span class="lbl">Arrondi au supérieur</span><span class="val">+ 0,75 €</span></div>
+        <div class="row total"><span class="lbl">Versé en janvier 2026</span><span class="val">199,00 €</span></div>
+      </div>
+      <div class="concretely">💡 <strong>Concrètement :</strong> à partir de février, la retenue de 57 € sera déduite. Vous toucherez environ 142 € net jusqu'au remboursement complet (estimé en septembre 2026).</div>
+    </div>
+    <div class="layer-actions">
+      <button class="layer-link layer-2-link" data-target="alsfinal-2">Loi</button>
+      <button class="layer-link layer-3-link" data-target="alsfinal-3">Code &amp; responsable</button>
+      <button class="layer-link layer-4-link" data-target="alsfinal-4">Pourquoi cette règle</button>
+    </div>
+    <div class="layer-2-content" data-layer2="alsfinal-2">
+      <div class="legal-card">
+        <div class="law-tag">Article L831-2 · Code de la sécurité sociale</div>
+        <div class="law-title">Détermination du montant de l'ALS</div>
+        <div class="law-quote">Le montant de l'allocation est calculé selon le barème prévu à l'article L. 822-2 du code de la construction et de l'habitation, arrondi à l'euro supérieur, et versé mensuellement à compter du premier jour du mois civil suivant celui de la demande.</div>
+        <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031741670/" target="_blank" rel="noopener" class="law-link">Voir l'article sur Légifrance →</a>
+        <!-- TODO vérif Légifrance : article exact L831-2 ou L831-3, paragraphe sur l'arrondi -->
+      </div>
+    </div>
+    <div class="layer-3-content" data-layer3="alsfinal-3">
+      <div class="responsible-card">
+        <div class="responsible-avatar">CN</div>
+        <div class="responsible-info">
+          <div class="name">CRISTAL — calcul mensuel</div>
+          <div class="role">Génère le montant arrondi versé à l'allocataire</div>
+          <span class="source">CRISTAL · function paiement_mensuel()</span>
+        </div>
+      </div>
+    </div>
+    <div class="layer-4-content" data-layer4="alsfinal-4">
+      <div class="why-card">
+        <div class="why-tag">Pourquoi cette règle existe</div>
+        <div class="why-title">Un droit recalculé chaque trimestre</div>
+        <p>Depuis la réforme de la contemporanéisation (2021), votre droit ALS est <strong>recalculé tous les trois mois</strong> à partir de votre déclaration trimestrielle de ressources.</p>
+        <p>Avant 2021, le droit était stable un an. Aujourd'hui il peut changer 4 fois dans l'année, à la hausse comme à la baisse. Cette instabilité est présentée comme une équité (l'aide colle à la situation), mais elle crée aussi une incertitude permanente.</p>
+        <div class="why-fact"><strong>À retenir :</strong> la simulation officielle CAF n'offre qu'une vue ponctuelle. Pour anticiper les changements, il faut refaire une simulation à chaque évolution de situation.</div>
+        <div class="why-source">Décret n°2019-1574 du 30 décembre 2019 sur la réforme dite « APL en temps réel ».</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <div class="tip-title">J'adopte les bons réflexes</div>
+    Je veille à toujours avoir mon compte caf.fr à jour. Les contrôles réalisés par ma Caf auprès des organismes (les Impôts, France Travail, etc...) ou de mon employeur servent à vérifier ma situation mais ne remplacent pas ma déclaration.
+  </div>
+
+  <div class="page-footer">
+    <div class="recourse-mention">
+      En cas de désaccord, vous disposez de deux mois pour contester cette décision.<br>
+      Pour plus d'informations sur les voies de recours : consultez <a href="#">caf.fr</a>, rubrique « Mon Compte ».
+    </div>
+    <div class="page-foot-meta">
+      <div>
+        <div>NDP1CJ 16012026 191219 Lot J</div>
+        <div>UNI NDEHB MAT 2562915 L</div>
+        <div>PAGE 1/5 IDX C 2051500 C 388</div>
+      </div>
+      <div>
+        <div class="barcode"></div>
+        <div class="barcode-num">*25629152051515012600*</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================================
+     SCRIPT TEST UTILISATEUR
+     ============================================================================ -->
+
+<!-- ============================================================================
+     GLOSSAIRE — termes techniques cliquables
+     ============================================================================ -->
+
+<script src="js/proto1.js?v=20260530" defer></script>
+<script src="js/sync-guard.js?v=20260530" defer></script>
+
+<!-- ============================================================================
+     CORRECTIF EMBARQUÉ : ÉCRAN DE REMERCIEMENT & VALIDATION INTELLIGENTE ANTI-SKIP
+     ============================================================================ -->
+<style>
+  /* Masquage propre des anciens éléments obsolètes sans casser le DOM pour vos scripts JS */
+  #test-overlay-end { display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -999 !important; }
+  .test-tuto__skip { display: none !important; visibility: hidden !important; }
+  /* Surlignage d'un champ requis vide (retiré dès que l'utilisateur écrit ou clique dedans) */
+  .test-field-error { border: 2px solid #e1000f !important; background-color: #fff4f4 !important; }
+</style>
+
+<!-- UNIQUE ÉCRAN DE REMERCIEMENT GLOBAL -->
+<div class="test-overlay" id="test-overlay-thanks" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 26, 26, 0.95); backdrop-filter: blur(4px); z-index: 999999; padding: 20px;">
+  <div class="test-overlay__box" style="background: #fff; padding: 40px; border-radius: 4px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); box-sizing: border-box;">
+    <div class="test-overlay__meta" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 16px;">Test terminé · Confirmation</div>
+    <h1 class="test-overlay__title" style="font-family: 'Open Sans', 'Spectral', sans-serif; font-weight: 700; margin-bottom: 20px; font-size: 24px; color: #161616; margin-top: 0;">
+      Merci pour votre participation !
+    </h1>
+    <p class="test-overlay__lead" style="font-family: 'Open Sans', sans-serif; margin-bottom: 32px; font-size: 15px; line-height: 1.6; color: #4a4a4a;">
+      Vos réponses et vos interactions ont bien été enregistrées et sauvegardées avec succès. Elles alimenteront directement les recherches de ce mémoire de design.
+    </p>
+    <a href="index.html" style="display: inline-block; background: #006bb6; color: #fff; padding: 12px 32px; text-decoration: none; font-weight: bold; border-radius: 4px; font-family: 'Open Sans', sans-serif; transition: background 0.2s;" onmouseover="this.style.background='#004f8a'" onmouseout="this.style.background='#006bb6'">
+      Retourner à l'accueil
+    </a>
+  </div>
+</div>
+
+<script>
+(function() {
+    // 1. Détection automatique de la fin du protocole via MutationObserver
+    function showNewThanksScreen() {
+        const thanksOverlay = document.getElementById('test-overlay-thanks');
+        if (thanksOverlay) thanksOverlay.style.setProperty('display', 'flex', 'important');
+        
+        document.querySelectorAll('.test-overlay').forEach(el => {
+            if (el.id !== 'test-overlay-thanks' && el.id !== 'test-overlay-end') {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+    }
+
+    function checkTestEnd() {
+        const oldEnd = document.getElementById('test-overlay-end');
+        if (oldEnd) {
+            if (!oldEnd.classList.contains('test-hidden') || (oldEnd.style.display && oldEnd.style.display !== 'none')) {
+                showNewThanksScreen();
+            }
+        }
+    }
+
+    const observer = new MutationObserver(checkTestEnd);
+    observer.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+
+    // 2. Moteur de validation stricte ciblé (empêche le passage si un champ requis est vide)
+    function isFieldVisible(el) {
+        if (!el.offsetParent) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.left < window.innerWidth;
+    }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-test-next], .test-carousel-arrow[id$="-next"], #test-scenario-next-btn, #test-tuto-next-1, #test-tuto-next-2, #test-to-libre-btn, #test-start-btn');
+        
+        if (btn) {
+            const activePanel = btn.closest('.test-panel__inner:not(.test-hidden), .test-overlay:not([style*="display: none"])');
+            if (activePanel) {
+                const isPhaseChange = btn.hasAttribute('data-test-next');
+                const isOverlay = activePanel.classList.contains('test-overlay');
+
+                const inputs = activePanel.querySelectorAll('textarea, input[type="text"]');
+                let allFilled = true;
+                let hiddenEmptyCount = 0;
+                
+                inputs.forEach(input => {
+                    const visible = isFieldVisible(input);
+                    
+                    // On ne valide les champs cachés que si on change de phase globale hors overlay (ex: carrousels de tâches)
+                    if (visible || (isPhaseChange && !isOverlay)) {
+                        if (input.value.trim() === '') {
+                            allFilled = false;
+                            if (visible) {
+                                input.classList.add('test-field-error');
+                                const clearErr = function() {
+                                    input.classList.remove('test-field-error');
+                                    input.removeEventListener('input', clearErr);
+                                    input.removeEventListener('focus', clearErr);
+                                };
+                                input.addEventListener('input', clearErr);
+                                input.addEventListener('focus', clearErr);
+                            } else {
+                                hiddenEmptyCount++;
+                            }
+                        }
+                    }
+                });
+                
+                if (!allFilled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    if (hiddenEmptyCount > 0) {
+                        alert("Impossible de continuer : vous avez oublié de remplir " + hiddenEmptyCount + " question(s) ou tâche(s) dans cette étape. Utilisez les flèches pour vérifier vos réponses précédentes.");
+                    } else {
+                        alert("Veuillez remplir tous les champs de texte affichés pour pouvoir avancer.");
+                    }
+                }
+            }
+        }
+    }, true);
+})();
+</script>
+
+</body>
+</html>

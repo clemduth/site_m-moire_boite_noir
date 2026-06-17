@@ -1,0 +1,13 @@
+# robots.txt — site mémoire DSAA "Les boîtes noires"
+# Clément Duterlay, 2026
+
+User-agent: *
+
+# Bloque l'accès au dossier des résultats de test (privé)
+Disallow: /resultats/
+
+# Bloque l'accès direct à l'endpoint de sauvegarde
+Disallow: /save.php
+
+# Autorise l'indexation du reste
+Allow: /

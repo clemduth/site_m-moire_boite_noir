@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Présentation des prototypes — Les boîtes noires (interne)</title>
+<meta name="description" content="Page de présentation. Les quatre prototypes en accès direct, sans questionnaire, avec accès aux résultats de test. Non répertorié.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cambay:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/index.css">
+
+<style>
+.present-meta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  background: var(--accent);
+  color: var(--paper);
+  padding: 6px 12px;
+  margin-bottom: 20px;
+  text-transform: lowercase;
+}
+.presentgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  margin-top: 8px;
+}
+.present-card { display: flex; flex-direction: column; gap: 14px; }
+/* le proto-card reste la carte cliquable (lien vers la démo) */
+.present-card .proto-card { flex: 0 0 auto; }
+.present-results {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
+  background: var(--paper-soft);
+  color: var(--ink);
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.15s;
+}
+.present-results::after { content: '→'; font-size: 15px; }
+.present-results:hover { background: var(--ink); color: var(--paper); }
+.present-results--none {
+  background: transparent;
+  color: var(--mute);
+  border-style: dashed;
+  cursor: default;
+}
+.present-results--none:hover { background: transparent; color: var(--mute); }
+.present-results--none::after { content: '·'; }
+@media (max-width: 900px) { .presentgrid { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+
+<header class="book-header">
+  <div class="book-header__inner">
+    <a href="index.html" class="book-header__tag">les boîtes noires</a>
+    <nav class="book-header__nav">
+      <a href="index.html" data-num="↖">accueil</a>
+      <a href="bilan-tests-b7f3c9.html" data-num="▤">bilan des tests</a>
+    </nav>
+    <div class="book-header__page">présentation · non répertorié</div>
+  </div>
+</header>
+
+<section class="section" id="present">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">▶</div>
+      <div>
+        <div class="present-meta">page de présentation · soutenance</div>
+        <h2 class="section__title">Les quatre prototypes.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Chaque carte ouvre le prototype seul, sans le questionnaire de test, prêt à être montré.
+      Sous chaque carte, un bouton donne accès aux résultats des tests utilisateurs correspondants.
+    </p>
+
+    <div class="presentgrid">
+
+      <!-- PROTO 1 -->
+      <div class="present-card">
+        <a href="proto1.html?demo=1" class="proto-card">
+          <div class="proto-card__visual proto-card__visual--lettre">
+            <div class="lettre-from">CAF · DETTE 420€</div>
+            <div class="lettre-body">
+              Madame,<br><br>
+              Compte tenu des <mark>informations</mark> en notre possession, nous avons procédé à la régularisation…
+            </div>
+          </div>
+          <div class="proto-card__body">
+            <div class="proto-card__num">Prototype 01</div>
+            <div class="proto-card__title">La décision dépliable</div>
+            <div class="proto-card__pub">Pour l'allocataire</div>
+            <p class="proto-card__text">
+              Un courrier de notification de dette CAF, augmenté. Chaque chiffre,
+              chaque mot technique se déplie en quatre couches : langage clair,
+              article de loi, trace Catala, contexte politique.
+            </p>
+            <div class="proto-card__cta">Présenter le prototype</div>
+          </div>
+        </a>
+        <a class="present-results" href="bilan-tests-b7f3c9.html#r-proto1">Résultats des tests</a>
+      </div>
+
+      <!-- PROTO 2 -->
+      <div class="present-card">
+        <a href="proto2.html?demo=1" class="proto-card">
+          <div class="proto-card__visual proto-card__visual--calendar">
+            <div class="cal-head">
+              <span>Janv. 2026</span>
+              <span><em>ALS sur 12 mois</em></span>
+              <span>Déc. 2026</span>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>J</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>F</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>M</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>A</div>
+              <div class="cal-month has-event">
+                <div class="cal-icon">📦</div>
+                <div class="cal-bar cal-bar--high"></div>M
+              </div>
+              <div class="cal-month"><div class="cal-bar cal-bar--high"></div>J</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--high"></div>J</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--high"></div>A</div>
+              <div class="cal-month has-event">
+                <div class="cal-icon is-accent">💼</div>
+                <div class="cal-bar cal-bar--low"></div>S
+              </div>
+              <div class="cal-month"><div class="cal-bar cal-bar--low"></div>O</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--low"></div>N</div>
+              <div class="cal-month"><div class="cal-bar cal-bar--low"></div>D</div>
+            </div>
+            <div class="cal-foot">
+              <span>📦 déménagement</span>
+              <span><strong>·</strong></span>
+              <span>💼 reprise d'emploi</span>
+            </div>
+          </div>
+          <div class="proto-card__body">
+            <div class="proto-card__num">Prototype 02</div>
+            <div class="proto-card__title">Le simulateur de vie</div>
+            <div class="proto-card__pub">Pour l'allocataire prospectif</div>
+            <p class="proto-card__text">
+              Une frise de douze mois sur laquelle on glisse des blocs de changement
+              de vie : déménagement, reprise d'emploi, naissance. Le simulateur
+              calcule l'effet sur l'ALS et expose la trace du calcul.
+            </p>
+            <div class="proto-card__cta">Présenter le prototype</div>
+          </div>
+        </a>
+        <a class="present-results" href="bilan-tests-b7f3c9.html#r-proto2">Résultats des tests</a>
+      </div>
+
+      <!-- PROTO 3 -->
+      <div class="present-card">
+        <a href="proto3.html?demo=1" class="proto-card">
+          <div class="proto-card__visual proto-card__visual--catala">
+            <div class="cat-head">
+              <span><em>Catala</em> · trace L831-1 CSS</span>
+              <span>cas Marie D.</span>
+            </div>
+            <span class="cat-line"><span class="key">champ d'application</span> CalculALS:</span>
+            <span class="cat-line">  <span class="key">définition</span> participation</span>
+            <span class="cat-line">    <span class="key">égal à</span> revenus * <span class="num">10</span>%</span>
+            <span class="cat-line is-flagged">  <span class="key">exception définition</span> participation<span class="cat-flag-label">moyen</span></span>
+            <span class="cat-line is-flagged">    <span class="key">sous condition</span> ressources &lt; <span class="num">9000</span></span>
+            <span class="cat-line is-flagged">    <span class="key">conséquence</span> = <span class="num">0</span></span>
+            <span class="cat-line"><span class="com">## non appliquée alors qu'elle aurait dû</span></span>
+            <div class="cat-foot"><strong>→</strong> moyen retenu pour le recours CRA</div>
+          </div>
+          <div class="proto-card__body">
+            <div class="proto-card__num">Prototype 03</div>
+            <div class="proto-card__title">La double lecture</div>
+            <div class="proto-card__pub">Pour le juriste</div>
+            <p class="proto-card__text">
+              Une extension navigateur fictive qui, sur les pages Légifrance, donne
+              accès à la traduction Catala de l'article et à sa trace d'exécution
+              pour un cas réel. Pour identifier les moyens d'un recours.
+            </p>
+            <div class="proto-card__cta">Présenter le prototype</div>
+          </div>
+        </a>
+        <a class="present-results" href="bilan-tests-b7f3c9.html#r-proto3">Résultats des tests</a>
+      </div>
+
+      <!-- PROTO 4 -->
+      <div class="present-card">
+        <a href="proto4.html" class="proto-card">
+          <div class="proto-card__visual proto-card__visual--catala">
+            <div class="cat-head">
+              <span><em>Catala</em> · 20 variables</span>
+              <span>cas-test · 463,32 €</span>
+            </div>
+            <span class="cat-line"><span class="key">aide_finale</span> = <span class="num">463,32 €</span></span>
+            <span class="cat-line">  <span class="key">←</span> participation_personnelle</span>
+            <span class="cat-line">  <span class="key">←</span> plafond_loyer_d823_16_2</span>
+            <span class="cat-line">  <span class="key">←</span> …</span>
+            <div class="cat-foot"><strong>▣</strong> la boîte noire, ouverte étage par étage</div>
+          </div>
+          <div class="proto-card__body">
+            <div class="proto-card__num">Prototype 04 · test</div>
+            <div class="proto-card__title">La tour de calcul</div>
+            <div class="proto-card__pub">Exploration visuelle · non finalisé</div>
+            <p class="proto-card__text">
+              Le calcul APL réel monté en bâtiment isométrique 3D, un étage par variable.
+              Une maquette de test pour explorer comment présenter un calcul complexe et
+              navigable, plus qu'un outil abouti.
+            </p>
+            <div class="proto-card__cta">Voir l'exploration</div>
+          </div>
+        </a>
+        <span class="present-results present-results--none">Prototype non encore testé</span>
+      </div>
+
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Note</div>
+      <div class="section__body-main">
+        <p>
+          Les protos 1 à 3 s'ouvrent ici en <strong>mode présentation</strong> (paramètre
+          <code>?demo</code>), sans l'écran de consentement ni le panneau de test. Pour relancer
+          la <strong>version questionnaire</strong> d'un proto, il suffit d'ouvrir
+          <code>proto1.html</code>, <code>proto2.html</code> ou <code>proto3.html</code> sans ce paramètre.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot__inner">
+    <div class="foot__brand">
+      <strong>Les boîtes noires</strong>
+      <small>présentation des prototypes · document interne</small>
+    </div>
+    <div class="foot__col">
+      <h4>Liens</h4>
+      <a href="index.html">Accueil du site</a>
+      <a href="bilan-tests-b7f3c9.html">Bilan des tests utilisateurs</a>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div>accès démo sans questionnaire · non répertorié · noindex</div>
+    <div>© 2026 · clément duterlay</div>
+  </div>
+</footer>
+
+</body>
+</html>

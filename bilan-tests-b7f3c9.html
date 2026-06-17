@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Bilan des tests utilisateurs — Les boîtes noires (interne)</title>
+<meta name="description" content="Document de travail interne. Synthèse des tests utilisateurs des prototypes du mémoire Les boîtes noires. Non répertorié.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cambay:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/index.css">
+
+<style>
+/* ============================================================================
+   BILAN — styles dédiés aux schémas, dans les tokens du site
+   ============================================================================ */
+.bilan-meta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  background: var(--accent);
+  color: var(--paper);
+  padding: 6px 12px;
+  margin-bottom: 20px;
+  text-transform: lowercase;
+}
+
+/* légende réutilisable */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 24px 0;
+}
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i {
+  width: 12px; height: 12px; display: inline-block; border: 1px solid var(--ink);
+}
+.sw-ok   { background: var(--ink); }
+.sw-part { background: var(--paper-deep); }
+.sw-fail { background: var(--paper); }
+
+/* ---- schéma 1 : réussite par tâche ---- */
+.proto-block { margin-bottom: 44px; }
+.proto-block__head {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.proto-block__head em { font-style: normal; color: var(--accent); }
+.proto-block__head small { font-family: var(--mono); font-size: 10px; color: var(--mute); letter-spacing: 0.04em; }
+
+.taskbar { margin-bottom: 12px; }
+.taskbar__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.taskbar__label span:first-child { max-width: 78%; }
+.taskbar__label b { font-weight: 400; color: var(--mute); white-space: nowrap; }
+.taskbar__track {
+  display: flex;
+  height: 22px;
+  border: 1px solid var(--ink);
+  overflow: hidden;
+}
+.taskbar__seg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--paper);
+  border-right: 1px solid var(--ink);
+}
+.taskbar__seg:last-child { border-right: none; }
+.taskbar__seg.ok   { background: var(--ink); color: var(--paper); }
+.taskbar__seg.part { background: var(--paper-deep); color: var(--ink); }
+.taskbar__seg.fail { background: var(--paper); color: var(--mute); }
+.taskbar.is-weak .taskbar__label span:first-child::after {
+  content: " ✕ point noir";
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* ---- schéma 2 : échelles ---- */
+.scales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 8px;
+}
+.scale-row { margin-bottom: 16px; }
+.scale-row__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: var(--ink-soft);
+}
+.scale-row__label b { font-weight: 700; color: var(--accent); }
+.scale-row__track {
+  height: 14px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  position: relative;
+}
+.scale-row__fill { height: 100%; background: var(--ink); }
+.scale-row__ticks {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  pointer-events: none;
+}
+.scale-row__ticks span { border-right: 1px solid var(--line-soft); }
+.scale-row__ticks span:last-child { border-right: none; }
+.scale-note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--mute);
+  border-left: 2px solid var(--accent);
+  padding: 8px 0 8px 14px;
+  margin-top: 8px;
+  line-height: 1.55;
+}
+@media (max-width: 768px) { .scales { grid-template-columns: 1fr; gap: 28px; } }
+
+/* ---- schéma 3 : entonnoir ---- */
+.funnel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 8px;
+}
+.funnel__col { border: 1px solid var(--ink); background: var(--paper); }
+.funnel__col h4 {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 12px;
+}
+.funnel__col h4 em { font-style: normal; color: var(--catala-key); }
+.funnel__step {
+  border-bottom: 1px dashed var(--line);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.funnel__step:last-child { border-bottom: none; }
+.funnel__bar {
+  height: 16px;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  flex-shrink: 0;
+}
+.funnel__step.is-final .funnel__bar { background: var(--accent); }
+.funnel__txt { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); }
+.funnel__txt b { color: var(--ink); font-size: 13px; }
+.funnel__txt.is-zero b { color: var(--accent); }
+@media (max-width: 768px) { .funnel { grid-template-columns: 1fr; } }
+
+/* ---- schéma 4 : verbatims ---- */
+.verbcols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 8px;
+}
+.verbcol__title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--ink);
+}
+.verbcol--ok .verbcol__title { color: var(--ink); }
+.verbcol--fric .verbcol__title { color: var(--mute); }
+.verbcol--fix .verbcol__title { color: var(--accent); border-bottom-color: var(--accent); }
+.verb {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.verb:last-child { border-bottom: none; }
+.verb cite {
+  display: block;
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 6px;
+}
+@media (max-width: 768px) { .verbcols { grid-template-columns: 1fr; gap: 20px; } }
+
+/* ---- schéma 5 : tableau de synthèse ---- */
+.synth {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.synth th, .synth td {
+  border: 1px solid var(--ink);
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+.synth th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 400;
+}
+.synth td { font-family: var(--serif); line-height: 1.5; color: var(--ink-soft); }
+.synth td:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); width: 22%; }
+.synth .verdict { font-family: var(--mono); font-size: 11px; }
+.synth .verdict.go { color: var(--ink); }
+.synth .verdict.warn { color: var(--accent); }
+@media (max-width: 768px) {
+  .synth, .synth tbody, .synth tr, .synth td { display: block; width: 100%; }
+  .synth thead { display: none; }
+  .synth td { border-top: none; }
+  .synth tr { border: 1px solid var(--ink); margin-bottom: 16px; }
+  .synth td:first-child { background: var(--ink); color: var(--paper); width: 100%; }
+}
+
+/* ---- lanceur : accès prototypes pour la présentation ---- */
+.launchgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 8px; }
+.launch-card {
+  border: 1px solid var(--ink); background: var(--paper); padding: 20px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: transform .15s, box-shadow .15s;
+}
+.launch-card:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--accent); }
+.launch-card__num { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.launch-card__title { font-family: var(--mono); font-size: 16px; line-height: 1.2; }
+.launch-card__aud { font-family: var(--serif); font-size: 13px; font-style: italic; color: var(--mute); flex: 1; }
+.launch-card__btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink); padding: 9px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.launch-card__btn::after { content: '\2197'; }
+.launch-card:hover .launch-card__btn { background: var(--accent); border-color: var(--accent); }
+.launch-card--explore .launch-card__btn { background: var(--paper); color: var(--ink); }
+.launch-card--explore:hover .launch-card__btn { background: var(--accent); color: var(--paper); }
+@media (max-width: 768px) { .launchgrid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .launchgrid { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+
+<header class="book-header">
+  <div class="book-header__inner">
+    <a href="index.html" class="book-header__tag">les boîtes noires</a>
+    <nav class="book-header__nav">
+      <a href="#methode"  data-num="00" class="is-active">méthode</a>
+      <a href="#lancer"   data-num="▶">lancer</a>
+      <a href="#taches"   data-num="01">tâches</a>
+      <a href="#echelles" data-num="02">échelles</a>
+      <a href="#funnel"   data-num="03">complétion</a>
+      <a href="#verb"     data-num="04">verbatims</a>
+      <a href="#synth"    data-num="05">synthèse</a>
+    </nav>
+    <div class="book-header__page">document interne · non répertorié</div>
+  </div>
+</header>
+
+<!-- ============================================================================
+     00 — MÉTHODE
+     ============================================================================ -->
+<section class="section" id="methode">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">00</div>
+      <div>
+        <div class="bilan-meta">document de travail · non répertorié</div>
+        <h2 class="section__title">Bilan des tests utilisateurs.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Synthèse des sessions enregistrées sur les trois prototypes interactifs entre
+      le 25 mai et le 9 juin 2026. Les données proviennent des fichiers de résultats
+      collectés en ligne. Cette page n'est liée nulle part sur le site et n'est pas indexée.
+    </p>
+
+    <div class="def-block">
+      <div class="def-block__label">Ce qui est compté, ce qui est écarté</div>
+      <p>Le tri sépare les sessions exploitables des entrées de calibration. Sont écartés
+      les tests internes <em>(pseudo « test », commandes serveur saisies dans les champs)</em>,
+      les sessions ouvertes sans aucune saisie, et une session de chahut. Une session est dite
+      <strong>complète</strong> quand les cinq tâches et l'entretien ont été renseignés.</p>
+      <ul>
+        <li><strong>Proto 1 · La décision dépliable</strong> — 6 sessions complètes, 2 partielles, sur 18 enregistrées.</li>
+        <li><strong>Proto 2 · Le simulateur de vie</strong> — 5 sessions complètes, 2 partielles, sur 14 enregistrées.</li>
+        <li><strong>Proto 3 · La double lecture</strong> — 0 session complète, 2 explorations, sur 8 enregistrées.</li>
+      </ul>
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Profils</div>
+      <div class="section__body-main">
+        <p>
+          Le panel est presque entièrement composé d'<strong>étudiants</strong>, recrutés
+          en ligne. C'est le public cible du proto 2 et un public pertinent du proto 1, mais
+          c'est une limite à garder en tête. Le proto 3 vise des <strong>juristes</strong>,
+          qui n'ont pas encore été testés en conditions réelles.
+        </p>
+        <p>
+          Les durées sont indicatives. Plusieurs sessions ont été laissées ouvertes longtemps,
+          ce qui gonfle artificiellement certains temps de tâche. Les chiffres ci-dessous portent
+          donc sur la <strong>réussite</strong> et le <strong>ressenti</strong>, pas sur le chronomètre.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     LANCEUR — accès prototypes pour la présentation
+     ============================================================================ -->
+<section class="section section--alt" id="lancer">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">▶</div>
+      <div>
+        <div class="section__sub">Pour la présentation · ouverture en nouvel onglet</div>
+        <h2 class="section__title">Lancer les prototypes.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Accès direct à chaque prototype. Les protos 1 à 3 s'ouvrent sur leur questionnaire de test
+      (accueil, mise en scène, tâches, entretien). Le proto 4 est l'exploration visuelle, sans
+      questionnaire. Chaque lien s'ouvre dans un nouvel onglet pour garder ce bilan en fond.
+    </p>
+
+    <div class="launchgrid">
+
+      <a class="launch-card" href="proto1.html?test=1" target="_blank" rel="noopener">
+        <span class="launch-card__num">Proto 01 · questionnaire</span>
+        <span class="launch-card__title">La décision dépliable</span>
+        <span class="launch-card__aud">Pour l'allocataire</span>
+        <span class="launch-card__btn">Lancer le questionnaire</span>
+      </a>
+
+      <a class="launch-card" href="proto2.html?test=1" target="_blank" rel="noopener">
+        <span class="launch-card__num">Proto 02 · questionnaire</span>
+        <span class="launch-card__title">Le simulateur de vie</span>
+        <span class="launch-card__aud">Pour l'allocataire prospectif</span>
+        <span class="launch-card__btn">Lancer le questionnaire</span>
+      </a>
+
+      <a class="launch-card" href="proto3.html?test=1" target="_blank" rel="noopener">
+        <span class="launch-card__num">Proto 03 · questionnaire</span>
+        <span class="launch-card__title">La double lecture</span>
+        <span class="launch-card__aud">Pour le juriste</span>
+        <span class="launch-card__btn">Lancer le questionnaire</span>
+      </a>
+
+      <a class="launch-card launch-card--explore" href="proto4.html" target="_blank" rel="noopener">
+        <span class="launch-card__num">Proto 04 · exploration</span>
+        <span class="launch-card__title">La tour de calcul</span>
+        <span class="launch-card__aud">Maquette visuelle, sans questionnaire</span>
+        <span class="launch-card__btn">Ouvrir l'exploration</span>
+      </a>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     01 — RÉUSSITE PAR TÂCHE
+     ============================================================================ -->
+<section class="section section--alt" id="taches">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">01</div>
+      <div>
+        <div class="section__sub">Schéma 1 · ce que les gens réussissent à faire</div>
+        <h2 class="section__title">Réussite par tâche.</h2>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="sw-ok"></i> réussi</span>
+      <span><i class="sw-part"></i> partiel</span>
+      <span><i class="sw-fail"></i> échec / non renseigné</span>
+    </div>
+
+    <!-- PROTO 1 -->
+    <div class="proto-block">
+      <div class="proto-block__head"><span><em>Proto 1</em> · La décision dépliable</span><small>n = 6 complètes</small></div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T1 · retrouver d'où vient le montant recalculé</span><b>5 réussi · 1 partiel</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:83%">5</div>
+          <div class="taskbar__seg part" style="width:17%">1</div>
+        </div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T2 · expliquer « loyer plafond » avec ses mots</span><b>5 réussi · 1 échec</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:83%">5</div>
+          <div class="taskbar__seg fail" style="width:17%">1</div>
+        </div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T3 · identifier ce qui a changé (trop-perçu)</span><b>6 réussi</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:100%">6 — tâche la mieux réussie</div>
+        </div>
+      </div>
+
+      <div class="taskbar is-weak">
+        <div class="taskbar__label"><span>T4 · qui est responsable, comment contester</span><b>0 réussi · 4 partiel · 2 échec</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg part" style="width:67%">4</div>
+          <div class="taskbar__seg fail" style="width:33%">2</div>
+        </div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T5 · la réaction a-t-elle changé après exploration</span><b>3 réussi · 2 partiel · 1 n.r.</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:50%">3</div>
+          <div class="taskbar__seg part" style="width:33%">2</div>
+          <div class="taskbar__seg fail" style="width:17%">1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTO 2 -->
+    <div class="proto-block">
+      <div class="proto-block__head"><span><em>Proto 2</em> · Le simulateur de vie</span><small>n = 5 complètes</small></div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T1 · prise en main de l'outil</span><b>5 réussi</b></div>
+        <div class="taskbar__track"><div class="taskbar__seg ok" style="width:100%">5</div></div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T2 · simuler un déménagement</span><b>5 réussi</b></div>
+        <div class="taskbar__track"><div class="taskbar__seg ok" style="width:100%">5</div></div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T3 · ajouter une reprise d'emploi et comparer</span><b>4 réussi · 1 échec</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:80%">4</div>
+          <div class="taskbar__seg fail" style="width:20%">1</div>
+        </div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T4 · repérer un seuil critique sur le graphique</span><b>3 réussi · 2 échec</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:60%">3</div>
+          <div class="taskbar__seg fail" style="width:40%">2</div>
+        </div>
+      </div>
+
+      <div class="taskbar">
+        <div class="taskbar__label"><span>T5 · l'intuition de départ s'est-elle vérifiée</span><b>1 réussi · 2 échec · 2 n.r.</b></div>
+        <div class="taskbar__track">
+          <div class="taskbar__seg ok" style="width:20%">1</div>
+          <div class="taskbar__seg fail" style="width:80%">2 échec · 2 non concluant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTO 3 -->
+    <div class="proto-block">
+      <div class="proto-block__head"><span><em>Proto 3</em> · La double lecture</span><small>n = 0 complète</small></div>
+      <div class="taskbar">
+        <div class="taskbar__label"><span>Aucune session juriste menée jusqu'au bout</span><b>à tester</b></div>
+        <div class="taskbar__track"><div class="taskbar__seg fail" style="width:100%">pas de données exploitables</div></div>
+      </div>
+    </div>
+
+    <div class="section__body">
+      <div class="section__body-margin">Lecture</div>
+      <div class="section__body-main">
+        <p>
+          Le proto 1 produit un résultat net. <strong>Comprendre le calcul est acquis</strong>,
+          la tâche sur le trop-perçu passe à 100 %. Mais <strong>personne ne trouve le chemin
+          vers la contestation</strong>. La tâche T4 n'a aucune réussite pleine, sur les six
+          sessions complètes. C'est le point d'action prioritaire.
+        </p>
+        <p>
+          Le proto 2 cale sur la tâche d'intuition finale, surtout parce que la simulation du
+          changement d'emploi a buté sur un libellé d'événement (détaillé plus bas), pas sur
+          le concept lui-même.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     02 — ÉCHELLES
+     ============================================================================ -->
+<section class="section" id="echelles">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">02</div>
+      <div>
+        <div class="section__sub">Schéma 2 · ce que les gens ressentent</div>
+        <h2 class="section__title">Échelles d'auto-évaluation.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Notes données par les participants en fin de session, de 1 à 5. Moyennes sur les sessions
+      complètes. Les trois dimensions sûres sont affichées en clair. La dimension « charge » est
+      mise à part, son sens d'échelle restant à confirmer.
+    </p>
+
+    <div class="scales">
+
+      <div>
+        <div class="proto-block__head"><span><em>Proto 1</em> · La décision dépliable</span><small>n = 6</small></div>
+
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Compréhension</span><b>4,2 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:84%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Confiance</span><b>4,2 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:84%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Autonomie</span><b>3,5 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:70%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+
+        <div class="scale-note">
+          Charge ressentie · 4,3 / 5 — dimension mise à part, le sens de l'échelle
+          (lourd ou gérable) reste à fixer. À recouper avec les verbatims sur le volume de lecture.
+        </div>
+      </div>
+
+      <div>
+        <div class="proto-block__head"><span><em>Proto 2</em> · Le simulateur de vie</span><small>n = 5</small></div>
+
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Compréhension</span><b>4,2 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:84%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Anticipation <em style="color:var(--accent);font-style:normal">· point fort</em></span><b>4,6 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:92%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Confiance</span><b>4,2 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:84%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-row__label"><span>Autonomie</span><b>3,8 / 5</b></div>
+          <div class="scale-row__track"><div class="scale-row__fill" style="width:76%"></div><div class="scale-row__ticks"><span></span><span></span><span></span><span></span><span></span></div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Lecture</div>
+      <div class="section__body-main">
+        <p>
+          Sur les deux prototypes, la compréhension et la confiance se tiennent autour de
+          <strong>4,2 sur 5</strong>. L'autonomie est plus basse, ce qui colle avec le proto 1,
+          on comprend la décision mais on ne se sent pas capable d'agir dessus.
+          L'<strong>anticipation du proto 2 est le meilleur score de tout le test, à 4,6</strong>.
+          Se projeter dans l'année à venir est ce que l'outil fait le mieux.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     03 — ENTONNOIR
+     ============================================================================ -->
+<section class="section section--alt" id="funnel">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">03</div>
+      <div>
+        <div class="section__sub">Schéma 3 · de l'ouverture à la session exploitable</div>
+        <h2 class="section__title">Complétion et déperdition.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Combien de sessions ouvertes aboutissent à une session complète, et où ça décroche.
+    </p>
+
+    <div class="funnel">
+
+      <div class="funnel__col">
+        <h4><em>Proto 1</em> · décision dépliable</h4>
+        <div class="funnel__step"><div class="funnel__bar" style="width:100%"></div><div class="funnel__txt"><b>18</b> sessions enregistrées</div></div>
+        <div class="funnel__step"><div class="funnel__bar" style="width:50%"></div><div class="funnel__txt"><b>9</b> avec saisie réelle</div></div>
+        <div class="funnel__step is-final"><div class="funnel__bar" style="width:33%"></div><div class="funnel__txt"><b>6</b> complètes</div></div>
+      </div>
+
+      <div class="funnel__col">
+        <h4><em>Proto 2</em> · simulateur de vie</h4>
+        <div class="funnel__step"><div class="funnel__bar" style="width:100%"></div><div class="funnel__txt"><b>14</b> sessions enregistrées</div></div>
+        <div class="funnel__step"><div class="funnel__bar" style="width:50%"></div><div class="funnel__txt"><b>7</b> avec saisie réelle <em style="color:var(--accent)">· 1 abandon sur tablette</em></div></div>
+        <div class="funnel__step is-final"><div class="funnel__bar" style="width:36%"></div><div class="funnel__txt"><b>5</b> complètes</div></div>
+      </div>
+
+      <div class="funnel__col">
+        <h4><em>Proto 3</em> · double lecture</h4>
+        <div class="funnel__step"><div class="funnel__bar" style="width:100%"></div><div class="funnel__txt"><b>8</b> sessions enregistrées</div></div>
+        <div class="funnel__step"><div class="funnel__bar" style="width:25%"></div><div class="funnel__txt"><b>2</b> explorations juristes</div></div>
+        <div class="funnel__step is-final"><div class="funnel__bar" style="width:4%"></div><div class="funnel__txt is-zero"><b>0</b> complète</div></div>
+      </div>
+
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Lecture</div>
+      <div class="section__body-main">
+        <p>
+          Le taux de complétion tourne autour d'<strong>un tiers</strong> des sessions ouvertes,
+          ce qui est attendu pour un test en ligne sans accompagnement. Deux points concrets,
+          le <strong>proto 2 perd les visiteurs sur tablette et mobile</strong> faute de blocs
+          manipulables, et le <strong>proto 3 n'a aucune donnée juriste</strong>, c'est le chantier
+          de test à ouvrir avant la soutenance.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     04 — VERBATIMS
+     ============================================================================ -->
+<section class="section" id="verb">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">04</div>
+      <div>
+        <div class="section__sub">Schéma 4 · ce que les gens disent</div>
+        <h2 class="section__title">Verbatims classés.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Extraits courts tirés des champs libres et des entretiens, regroupés par fonction.
+    </p>
+
+    <div class="verbcols">
+
+      <div class="verbcol verbcol--ok">
+        <div class="verbcol__title">Ce qui marche</div>
+        <div class="verb">On lit plus, mais on comprend davantage la décision.<cite>Baluthor · proto 1</cite></div>
+        <div class="verb">Ça enlève le stress de recevoir un courrier de la CAF.<cite>InèsJ · proto 1</cite></div>
+        <div class="verb">Très ludique, on comprend immédiatement où cliquer.<cite>Johanna · proto 1</cite></div>
+        <div class="verb">Le système de blocs à placer est très smart.<cite>InèsJ · proto 2</cite></div>
+        <div class="verb">Un outil accessible, pour se projeter sur l'année.<cite>Baluthor · proto 2</cite></div>
+      </div>
+
+      <div class="verbcol verbcol--fric">
+        <div class="verbcol__title">Friction</div>
+        <div class="verb">Je ne comprends pas la logique de la hiérarchie Loi / Code / Pourquoi.<cite>VB · proto 1</cite></div>
+        <div class="verb">Beaucoup à lire, beaucoup de choix, ça reste frustrant.<cite>VB · proto 1</cite></div>
+        <div class="verb">Il faut une petite minute avant de comprendre l'outil.<cite>InèsJ · proto 2</cite></div>
+        <div class="verb">Je n'ai pas de suite compris ce qu'ils changeaient sur le graphique.<cite>Clémentine · proto 2</cite></div>
+      </div>
+
+      <div class="verbcol verbcol--fix">
+        <div class="verbcol__title">À corriger</div>
+        <div class="verb">Je n'ai pas trouvé de moyen de contester.<cite>VB · proto 1 · tâche T4</cite></div>
+        <div class="verb">Sur tablette je n'ai pas de blocs, donc j'abandonne.<cite>SP · proto 2 · mobile</cite></div>
+        <div class="verb">La palette « passage à temps plein » n'apparaît pas.<cite>Angelina · proto 2 · libellé</cite></div>
+        <div class="verb">Les liens Légifrance n'amenaient pas directement aux articles.<cite>Baluthor · proto 1</cite></div>
+        <div class="verb">Pourquoi deux palettes, loyer − et loyer + ?<cite>Angelina · proto 2</cite></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     05 — SYNTHÈSE
+     ============================================================================ -->
+<section class="section section--alt" id="synth">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">05</div>
+      <div>
+        <div class="section__sub">Schéma 5 · le bilan par prototype</div>
+        <h2 class="section__title">Synthèse et verdict design.</h2>
+      </div>
+    </div>
+
+    <table class="synth">
+      <thead>
+        <tr>
+          <th>Prototype</th>
+          <th>Ce qui est acquis</th>
+          <th>Ce qui bloque</th>
+          <th>Action prioritaire</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="r-proto1">
+          <td>Proto 1<br>La décision dépliable</td>
+          <td>La compréhension du calcul et du trop-perçu. Le geste de dépliage par couches. Compréhension et confiance à 4,2 / 5.</td>
+          <td>Aucun chemin clair vers la contestation (T4 sans réussite). Hiérarchie Loi / Code / Pourquoi mal comprise. Charge de lecture élevée. Liens Légifrance cassés.</td>
+          <td class="verdict warn">Ajouter une couche « contester » explicite. Revoir l'ordre des couches. Corriger les liens.</td>
+        </tr>
+        <tr id="r-proto2">
+          <td>Proto 2<br>Le simulateur de vie</td>
+          <td>L'anticipation, meilleur score du test (4,6 / 5). Le geste blocs + frise. Prise en main et déménagement réussis à 100 %.</td>
+          <td>Pas de version mobile ni tablette (abandon). Libellés d'événements emploi ambigus. Double palette déménagement + / − qui interroge.</td>
+          <td class="verdict warn">Rendre les blocs manipulables sur mobile. Clarifier les libellés. Fusionner les deux palettes de loyer.</td>
+        </tr>
+        <tr id="r-proto3">
+          <td>Proto 3<br>La double lecture</td>
+          <td>Rien encore, faute de sessions complètes.</td>
+          <td>Aucune donnée juriste. Nom et énoncés de tâches encore en mouvement entre les versions.</td>
+          <td class="verdict warn">Stabiliser le protocole, puis tester avec de vrais juristes avant la soutenance.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="enjeux-pull" style="margin-top:48px;">
+      Le calcul devient lisible. <em>Agir dessus</em> ne l'est pas encore.
+      C'est l'écart que les tests rendent visible, et le prochain geste de design.
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Limites</div>
+      <div class="section__body-main">
+        <p>
+          Échantillon faible et presque uniquement étudiant. Pas de juristes testés. Durées non
+          fiables. Ces chiffres servent à orienter les corrections et à documenter la démarche,
+          pas à prouver statistiquement quoi que ce soit. La valeur est qualitative, dans les
+          verbatims et les points de friction repérés.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot__inner">
+    <div class="foot__brand">
+      <strong>Les boîtes noires</strong>
+      <small>bilan des tests utilisateurs · document interne</small>
+    </div>
+    <div class="foot__col">
+      <h4>Schémas</h4>
+      <a href="#taches">01 Réussite par tâche</a>
+      <a href="#echelles">02 Échelles</a>
+      <a href="#funnel">03 Complétion</a>
+      <a href="#verb">04 Verbatims</a>
+      <a href="#synth">05 Synthèse</a>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div>données collectées du 25 mai au 9 juin 2026 · non répertorié · noindex</div>
+    <div>© 2026 · clément duterlay</div>
+  </div>
+</footer>
+
+</body>
+</html>

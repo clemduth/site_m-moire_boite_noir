@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Caf · Notification · version brute Catala (démonstration)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/proto1.css">
+
+<style>
+/* ============================================================================
+   VERSION BRUTE — le code Catala s'ouvre dans une case dans la lettre,
+   à la place de l'explication. Démonstration.
+   ============================================================================ */
+
+.brut-banner {
+  position: sticky; top: 0; z-index: 50;
+  background: #1a1a1a; color: #f4f1ea;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px; line-height: 1.5;
+  padding: 12px 20px;
+  border-bottom: 3px solid #ff6b35;
+  display: flex; align-items: center; gap: 14px;
+}
+.brut-banner b { color: #ff6b35; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+.brut-banner span { color: #ddd6c8; }
+
+/* bouton flèche retour, coin haut-droit */
+.brut-corner {
+  position: fixed; top: 14px; right: 14px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 10px 14px; text-decoration: none;
+  box-shadow: 4px 4px 0 #ff6b35;
+  transition: all 0.15s;
+}
+.brut-corner:hover { background: #1a1a1a; color: #fff; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #ff6b35; }
+.brut-corner .arr { font-size: 16px; }
+
+.deployable { cursor: pointer; }
+
+/* ── la case dépliée, dans le flux de la lettre ── */
+.brut-panel {
+  display: none;
+  margin: 16px 32px;
+  border: 1px solid #1a1a1a;
+  border-left: 5px solid #ff6b35;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.brut-panel.is-open { display: block; animation: brutIn 0.18s ease; }
+@keyframes brutIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.brut-panel__head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid #ece8df;
+}
+.brut-panel__tag {
+  background: #ff6b35; color: #fff;
+  font: 600 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 9px;
+}
+.brut-panel__title { font: 600 14px "Open Sans", sans-serif; color: #1a1a1a; }
+.brut-panel__close {
+  margin-left: auto; border: 1px solid #ddd; background: #fafafa;
+  width: 28px; height: 28px; cursor: pointer; color: #666; font-size: 16px; line-height: 1;
+}
+.brut-panel__close:hover { background: #eee; color: #1a1a1a; }
+.brut-panel__note {
+  font: 13px/1.5 "Open Sans", sans-serif; color: #555;
+  padding: 12px 16px 0;
+}
+.brut-codebox {
+  background: #1a1a1a; color: #f4f1ea;
+  font: 12px/1.7 "JetBrains Mono", monospace;
+  white-space: pre; overflow: auto; max-height: 360px;
+  margin: 12px 16px 16px; padding: 16px 18px;
+  tab-size: 2;
+}
+.brut-codebox .c-com { color: #6f6a5d; font-style: italic; }
+.brut-codebox .c-kw  { color: #ff9d5c; }
+.brut-codebox .c-num { color: #9db8e8; }
+.brut-codebox .c-typ { color: #c9a0e8; }
+.brut-codebox .c-res { color: #82d39d; font-weight: 600; }
+.brut-codebox .c-hl  { background: rgba(255,107,53,0.22); display: inline-block; width: 100%; }
+.brut-panel__foot {
+  border-top: 1px solid #ece8df; padding: 12px 16px;
+  font: 12px/1.5 "JetBrains Mono", monospace; color: #777;
+}
+.brut-panel__foot b { color: #ff6b35; font-weight: 400; }
+
+/* on neutralise tout panneau dépliable hérité du css proto1 */
+.unfold-panel { display: none !important; }
+</style>
+</head>
+<body>
+
+<a class="brut-corner" href="proto1.html?demo=1" title="Revenir à la version dépliable">
+  <span class="arr">↩</span> version dépliable
+</a>
+
+<div class="intro-banner">
+  <div class="icon">{ }</div>
+  <div class="txt">
+    <strong>Notification de dette CAF · 15/01/2026</strong> — même document, mais la case dépliée contient le code, pas l'explication. Chaque terme <strong style="color:var(--catala-orange);">souligné en orange</strong> ouvre la trace Catala qui le produit.
+  </div>
+</div>
+
+<div class="paper">
+
+  <div class="letter-top">
+    <div class="left-col">
+      <div class="caf-logo">
+        <div class="hex">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="30,3 54,16 54,44 30,57 6,44 6,16" fill="#006bb6" stroke="#fff" stroke-width="0.6"/>
+            <path d="M6,40 L54,40 L54,44 L30,57 L6,44 Z" fill="#aec2e4"/>
+            <g fill="#fff">
+              <circle cx="18" cy="20" r="2"/><path d="M16,22 L20,22 L20,28 L16,28 Z"/>
+              <circle cx="30" cy="14" r="2"/><path d="M28,16 L32,16 L32,22 L28,22 Z"/>
+              <circle cx="42" cy="20" r="2"/><path d="M40,22 L44,22 L44,28 L40,28 Z"/>
+              <circle cx="18" cy="32" r="2"/><path d="M16,34 L20,34 L20,38 L16,38 Z"/>
+              <circle cx="30" cy="34" r="2"/><path d="M28,36 L32,36 L32,40 L28,40 Z"/>
+              <circle cx="42" cy="32" r="2"/><path d="M40,34 L44,34 L44,38 L40,38 Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="label">Allocations Familiales</div>
+      </div>
+      <div class="caf-fr">caf<span style="font-size:18px;line-height:1;margin:0 1px;">·</span>fr</div>
+      <hr>
+      <div class="field"><div class="field-label">N° Dossier :</div><div class="field-value">2562915</div></div>
+      <div class="field"><div class="field-label">Références :</div><div class="field-value">IN4 002</div></div>
+      <hr>
+      <div class="field">
+        <div class="field-label">Nous contacter :</div>
+        <div class="field-value">Nous téléphoner :</div>
+        <div class="contact-3230">
+          <span class="num">3230</span>
+          <span class="pill">Service<br>gratuit<br>+ prix appel</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Nous écrire :</div>
+        <div class="field-value">Caf du Rhône<br>67 boulevard Vivier-Merle<br>69409 LYON CEDEX 03</div>
+      </div>
+      <div class="field"><div class="field-label">Tous nos contacts sur caf.fr</div></div>
+      <hr>
+      <div class="field"><div class="field-label">Dossier suivi par :</div><div class="field-value">N.D</div></div>
+    </div>
+
+    <div class="right-col">
+      <h1 class="doc-title">Votre dossier Caf<strong>Notification de dette</strong></h1>
+      <div class="recipient-block">
+        <div class="recipient-num">247</div>
+        MME MARIE D.<br>
+        APPARTEMENT 4 RÉSIDENCE LES TILLEULS<br>
+        12 RUE DES LILAS<br>
+        69003 LYON
+      </div>
+    </div>
+  </div>
+
+  <div class="letter-body">
+    <div class="letter-date">Le 15/01/2026</div>
+    <p>Madame,</p>
+
+    <p>Compte tenu des <span class="deployable" data-key="informations">informations en notre possession</span>, nous avons procédé à la régularisation de vos droits aux Prestations Familiales.</p>
+
+    <p>Nous avons donc étudié vos droits. Ils changent à partir du 01.09.2025.</p>
+
+    <p>Il apparaît <span class="deployable" data-key="apres-calcul">après calcul</span> que pour L'ALLOCATION DE LOGEMENT SOCIALE (ALS) vous avez reçu <span class="deployable" data-key="recu">1 213,00 €</span> alors que vous aviez droit à <span class="deployable" data-key="droit">793,00 €</span>. <strong>VOUS NOUS DEVEZ <span class="deployable" data-key="dette">420,00 €</span></strong>.</p>
+
+    <p>Pour vous permettre de rembourser cette somme, nous retiendrons <span class="deployable" data-key="retenue">57,00 €</span> sur vos allocations à partir de FEVRIER 2026.</p>
+
+    <p>Pour plus d'information, voir au dos.</p>
+
+    <div class="signature">
+      Florence DEVYNCK, directrice.
+      <div class="sign-img">~~ƒD~~</div>
+    </div>
+  </div>
+
+  <div class="section-title">VOS DROITS</div>
+  <div class="bullet-title">• A partir de JANV 2026</div>
+
+  <div class="rights-table">
+    <table>
+      <thead>
+        <tr><th>ALS</th><th></th><th></th><th></th><th>Retenue</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="deployable" data-key="als-final">199,00</span></td>
+          <td></td><td></td><td></td><td></td>
+          <td class="total-cell">199,00 €</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box">
+    <div class="tip-title">J'adopte les bons réflexes</div>
+    Je veille à toujours avoir mon compte caf.fr à jour. Les contrôles réalisés par ma Caf auprès des organismes servent à vérifier ma situation mais ne remplacent pas ma déclaration.
+  </div>
+
+  <div class="page-footer">
+    <div class="recourse-mention">
+      En cas de désaccord, vous disposez de deux mois pour contester cette décision.<br>
+      Pour plus d'informations sur les voies de recours : consultez <a href="#">caf.fr</a>, rubrique « Mon Compte ».
+    </div>
+    <div class="page-foot-meta">
+      <div>
+        <div>NDP1CJ 16012026 191219 Lot J</div>
+        <div>UNI NDEHB MAT 2562915 L</div>
+        <div>PAGE 1/5 IDX C 2051500 C 388</div>
+      </div>
+      <div>
+        <div class="barcode"></div>
+        <div class="barcode-num">*25629152051515012600*</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================================
+     CASE DÉPLIÉE — réutilisée, déplacée sous le terme cliqué
+     ============================================================================ -->
+<div class="brut-panel" id="brut-panel" aria-hidden="true">
+  <div class="brut-panel__head">
+    <span class="brut-panel__tag">Code</span>
+    <span class="brut-panel__title" id="brut-panel-title">Le calcul, brut</span>
+    <button class="brut-panel__close" id="brut-panel-close" aria-label="Fermer">×</button>
+  </div>
+  <div class="brut-panel__note">Voilà ce qu'un allocataire devrait lire si on lui donnait simplement « le code » au nom de la transparence. Tout est exact, rien n'est compréhensible.</div>
+  <pre class="brut-codebox" id="brut-code"></pre>
+  <div class="brut-panel__foot"><b>→</b> et ceci n'est qu'une seule mensualité, pour un seul dossier, un seul barème.</div>
+</div>
+
+<script>
+(function(){
+  /* ── trace Catala brute (barème APL réel, articles D823-16 et D823-17 CCH) ── */
+  var TRACE = [
+    ['c-com','# ─────────────────────────────────────────────────────────────────────'],
+    ['c-com','# Code de la construction et de l\u2019habitation \u2014 partie r\u00e9glementaire'],
+    ['c-com','# Articles D823-16 \u00e0 D823-17 \u00b7 bar\u00e8me de l\u2019aide au logement'],
+    ['c-com','# Trace d\u2019ex\u00e9cution Catala \u00b7 cas Marie D. \u00b7 zone 2 \u00b7 personne seule'],
+    ['c-com','# ─────────────────────────────────────────────────────────────────────'],
+    ['',''],
+    ['c-kw','champ d\u2019application',' CalculAideLogement:'],
+    ['c-com','  # ── donn\u00e9es d\u2019entr\u00e9e du dossier ──────────────────────────────'],
+    ['seg','  donn\u00e9e ressources_prises_en_compte    contenu ','c-typ','argent'],
+    ['seg','  donn\u00e9e nombre_personnes_\u00e0_charge       contenu ','c-typ','entier'],
+    ['seg','  donn\u00e9e zone                            contenu ','c-typ','Zone'],
+    ['seg','  donn\u00e9e loyer_\u00e9ligible                  contenu ','c-typ','argent'],
+    ['seg','  donn\u00e9e situation_familiale             contenu ','c-typ','SituationFamiliale'],
+    ['seg','  donn\u00e9e date_ouverture_droit            contenu ','c-typ','date'],
+    ['seg','  r\u00e9sultat aide_finale                   contenu ','c-typ','argent'],
+    ['',''],
+    ['c-com','  # ── abattement forfaitaire (art. D823-17) ─────────────────────'],
+    ['txt','  d\u00e9finition abattement_forfaitaire \u00e9gal \u00e0'],
+    ['txt','    selon situation_familiale sous forme'],
+    ['txt','    -- PersonneSeule:'],
+    ['txt','       selon nombre_personnes_\u00e0_charge sous forme'],
+    ['seg','       -- Z\u00e9ro:        5 186,00 ','c-num','\u20ac'],
+    ['seg','       -- UnePersonne: 7 430,00 ','c-num','\u20ac'],
+    ['txt','       -- Plus_de n:   7 430,00 \u20ac + 1 482,00 \u20ac * (d\u00e9cimal de (n - 1))'],
+    ['txt','    -- Couple:'],
+    ['txt','       selon nombre_personnes_\u00e0_charge sous forme'],
+    ['txt','       -- Z\u00e9ro:        7 951,00 \u20ac'],
+    ['txt','       -- Plus_de n:   7 951,00 \u20ac + 1 482,00 \u20ac * (d\u00e9cimal de n)'],
+    ['',''],
+    ['c-com','  # ── plafond de loyer selon la zone (art. D823-16, II) ─────────'],
+    ['txt','  d\u00e9finition plafond_loyer \u00e9gal \u00e0'],
+    ['txt','    selon zone sous forme'],
+    ['txt','    -- Zone1: 504,84 \u20ac + 73,18 \u20ac * (d\u00e9cimal de (nb_\u00e0_charge - 1))'],
+    ['hl','    -- Zone2: 435,24 \u20ac + 63,15 \u20ac * (d\u00e9cimal de (nb_\u00e0_charge - 1))'],
+    ['txt','    -- Zone3: 407,03 \u20ac + 58,73 \u20ac * (d\u00e9cimal de (nb_\u00e0_charge - 1))'],
+    ['',''],
+    ['c-com','  # ── forfait charges (art. D823-16, III) ───────────────────────'],
+    ['txt','  d\u00e9finition forfait_charges \u00e9gal \u00e0'],
+    ['txt','    58,08 \u20ac + 13,17 \u20ac * (d\u00e9cimal de nombre_personnes_\u00e0_charge)'],
+    ['',''],
+    ['c-com','  # ── participation minimale (art. D823-16, IV) ─────────────────'],
+    ['txt','  d\u00e9finition participation_minimale \u00e9gal \u00e0'],
+    ['txt','    (plafond_loyer + forfait_charges) * 8,5 %'],
+    ['',''],
+    ['c-com','  # ── rapport des loyers, puis taux (art. D823-16, V) ───────────'],
+    ['txt','  d\u00e9finition loyer_r\u00e9f\u00e9rence \u00e9gal \u00e0'],
+    ['txt','    383,28 \u20ac + 55,79 \u20ac * (d\u00e9cimal de (nb_\u00e0_charge - 1))'],
+    ['txt','  d\u00e9finition rapport_loyers \u00e9gal \u00e0'],
+    ['txt','    (arrondi (plafond_loyer / loyer_r\u00e9f\u00e9rence * 100,0)) / 100,0'],
+    ['txt','  d\u00e9finition taux_loyer_\u00e9ligible \u00e9gal \u00e0'],
+    ['txt','    0,45 % * 30,0 % + 0,68 % * rapport_loyers - 0,75'],
+    ['txt','  d\u00e9finition taux_arrondi \u00e9gal \u00e0'],
+    ['txt','    (arrondi (taux_loyer_\u00e9ligible * 100 000,0)) / 100 000,0'],
+    ['',''],
+    ['c-com','  # ── taux de prise en compte des ressources ────────────────────'],
+    ['txt','  d\u00e9finition taux_composition_familiale \u00e9gal \u00e0'],
+    ['txt','    selon nombre_personnes_\u00e0_charge sous forme'],
+    ['txt','    -- Z\u00e9ro:          0,0283'],
+    ['txt','    -- UnePersonne:   0,0227'],
+    ['txt','    -- DeuxPersonnes: 0,0201'],
+    ['txt','    -- Plus_de n:     0,0201 - 0,0006 * (d\u00e9cimal de (n - 2))'],
+    ['txt','  d\u00e9finition taux_prise_compte_ressources \u00e9gal \u00e0'],
+    ['txt','    taux_composition_familiale + taux_arrondi'],
+    ['',''],
+    ['c-com','  # ── participation personnelle (art. D823-17) ──────────────────'],
+    ['txt','  d\u00e9finition participation_ressources \u00e9gal \u00e0'],
+    ['txt','    (ressources_prises_en_compte - abattement_forfaitaire)'],
+    ['txt','      * taux_prise_compte_ressources'],
+    ['txt','  d\u00e9finition participation_personnelle \u00e9gal \u00e0'],
+    ['txt','    participation_minimale + participation_ressources'],
+    ['',''],
+    ['c-com','  # ── exception : ressources inf\u00e9rieures au plancher ────────────'],
+    ['hl','  exception d\u00e9finition participation_personnelle'],
+    ['hl','    sous condition ressources_prises_en_compte < abattement_forfaitaire'],
+    ['hl','    cons\u00e9quence \u00e9gal \u00e0 participation_minimale'],
+    ['',''],
+    ['c-com','  # ── aide avant minoration et contributions ────────────────────'],
+    ['txt','  d\u00e9finition aide_brute \u00e9gal \u00e0'],
+    ['txt','    plafond_loyer + forfait_charges - participation_personnelle'],
+    ['txt','  d\u00e9finition aide_minor\u00e9e \u00e9gal \u00e0 aide_brute - 5,00 \u20ac'],
+    ['txt','  d\u00e9finition crds \u00e9gal \u00e0 aide_minor\u00e9e * 0,5 %'],
+    ['txt','  d\u00e9finition aide_moins_crds \u00e9gal \u00e0'],
+    ['txt','    arrondi (aide_minor\u00e9e - crds - 0,50 \u20ac)'],
+    ['',''],
+    ['c-com','  # ── exception : aide inf\u00e9rieure au seuil de versement ─────────'],
+    ['hl','  exception d\u00e9finition aide_finale'],
+    ['hl','    sous condition aide_moins_crds < 10,00 \u20ac'],
+    ['hl','    cons\u00e9quence \u00e9gal \u00e0 0,00 \u20ac'],
+    ['',''],
+    ['c-com','  # ── valeur retenue (cas Marie D.) ─────────────────────────────'],
+    ['txt','  d\u00e9finition aide_finale \u00e9gal \u00e0 aide_moins_crds + crds'],
+    ['',''],
+    ['c-com','# ═════════════════ trace des valeurs interm\u00e9diaires ═══════════════'],
+    ['c-com','# abattement_forfaitaire ............... 7 430,00 \u20ac'],
+    ['c-com','# plafond_loyer (zone 2) ............... 435,24 \u20ac'],
+    ['c-com','# forfait_charges ..................... 71,25 \u20ac'],
+    ['c-com','# participation_minimale ............... 43,05 \u20ac'],
+    ['c-com','# rapport_loyers ...................... 0,99'],
+    ['c-com','# taux_arrondi ........................ 0,00261'],
+    ['c-com','# taux_prise_compte_ressources ......... 0,02531'],
+    ['c-com','# participation_ressources ............ 199,40 \u20ac'],
+    ['c-com','# participation_personnelle ........... 242,45 \u20ac'],
+    ['c-com','# aide_brute .......................... 264,04 \u20ac'],
+    ['c-com','# \u2026 puis minoration, CRDS, arrondis, exceptions \u2026'],
+    ['c-res','# aide_finale ......................... 199,00 \u20ac'],
+  ];
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function build(){
+    var out = '';
+    for (var i=0;i<TRACE.length;i++){
+      var r = TRACE[i], t = r[0];
+      if (t === '' ){ out += '\n'; continue; }
+      if (t === 'txt'){ out += esc(r[1]) + '\n'; }
+      else if (t === 'hl'){ out += '<span class="c-hl">'+esc(r[1])+'</span>\n'; }
+      else if (t === 'c-com' || t === 'c-res'){ out += '<span class="'+t+'">'+esc(r[1])+'</span>\n'; }
+      else if (t === 'c-kw'){ out += '<span class="c-kw">'+esc(r[1])+'</span>'+(r[2]?esc(r[2]):'')+'\n'; }
+      else if (t === 'seg'){ out += esc(r[1]) + '<span class="'+r[2]+'">'+esc(r[3])+'</span>\n'; }
+    }
+    return out;
+  }
+
+  document.getElementById('brut-code').innerHTML = build();
+
+  var panel  = document.getElementById('brut-panel');
+  var titleEl = document.getElementById('brut-panel-title');
+  var openKey = null;
+
+  var LABELS = {
+    'informations': 'D\u2019o\u00f9 viennent ces « informations » ?',
+    'apres-calcul': 'Quel calcul ? \u2014 le bar\u00e8me, brut',
+    'recu':         'D\u2019o\u00f9 viennent les 1 213 \u20ac ?',
+    'droit':        'Pourquoi 793 \u20ac au lieu de 1 213 \u20ac ?',
+    'dette':        'Comment on arrive \u00e0 420 \u20ac ?',
+    'retenue':      'Comment la retenue de 57 \u20ac est fix\u00e9e',
+    'als-final':    'Pourquoi 199 \u20ac \u00e0 partir de janvier 2026 ?'
+  };
+
+  function close(){
+    panel.classList.remove('is-open');
+    panel.setAttribute('aria-hidden','true');
+    openKey = null;
+  }
+  function openFor(term){
+    var key = term.getAttribute('data-key');
+    var container = term.closest('p') || term.closest('.rights-table') || term.closest('table');
+    if (!container) return;
+    if (openKey === key && panel.classList.contains('is-open')){ close(); return; }
+    container.parentNode.insertBefore(panel, container.nextSibling);
+    titleEl.textContent = LABELS[key] || 'Le calcul, brut';
+    panel.classList.add('is-open');
+    panel.setAttribute('aria-hidden','false');
+    panel.querySelector('.brut-codebox').scrollTop = 0;
+    openKey = key;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.querySelectorAll('.deployable').forEach(function(t){
+    t.addEventListener('click', function(){ openFor(t); });
+  });
+  document.getElementById('brut-panel-close').addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+})();
+</script>
+
+</body>
+</html>

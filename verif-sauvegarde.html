@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Vérification sauvegarde — Les boîtes noires</title>
+<style>
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; max-width: 720px;
+         margin: 40px auto; padding: 0 20px; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 22px; border-bottom: 3px solid #b0271e; padding-bottom: 8px; }
+  h2 { font-size: 16px; margin-top: 32px; }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }
+  .box { border: 1px solid #ccc; border-radius: 6px; padding: 16px; margin: 12px 0;
+         background: #fafafa; }
+  .result { font-family: ui-monospace, monospace; font-size: 14px; white-space: pre-wrap;
+            word-break: break-word; padding: 14px; border-radius: 6px; margin-top: 10px; }
+  .ok   { background: #e7f6ec; color: #166534; border: 1px solid #28a745; }
+  .ko   { background: #fdeaea; color: #991b1b; border: 1px solid #dc3545; }
+  .wait { background: #fff7e6; color: #92560a; border: 1px solid #e0a800; }
+  button { font-size: 15px; padding: 12px 18px; border: 0; border-radius: 6px;
+           background: #1a1a1a; color: #fff; cursor: pointer; }
+  button:hover { background: #b0271e; }
+  .hint { color: #666; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Vérification de la sauvegarde</h1>
+<p>Cette page teste l'enregistrement de bout en bout, par deux chemins
+différents. Elle est sur une adresse neuve, donc ton navigateur est
+obligé de la charger fraîche.</p>
+
+<h2>Méthode 1 — automatique (requête simple, sans contrôle préalable)</h2>
+<div class="box">
+  <p class="hint">Envoi lancé tout seul au chargement de la page.
+  Identifiant de session&nbsp;: <span class="mono" id="sid1">…</span></p>
+  <div id="res1" class="result wait">Envoi en cours…</div>
+  <p><button onclick="lancerTest1()">Relancer la méthode 1</button></p>
+</div>
+
+<h2>Méthode 2 — formulaire classique (aucun JavaScript)</h2>
+<div class="box">
+  <p class="hint">Clique le bouton. La page va naviguer vers save.php et
+  afficher directement la réponse brute du serveur. Si tu vois
+  <code>"ok":true</code>, c'est enregistré. Identifiant&nbsp;:
+  <span class="mono">verif-form-30052026</span></p>
+  <form method="POST" action="save.php">
+    <input type="hidden" name="payload"
+      value='{"proto":"proto1","session_id":"verif-form-30052026","data":{"meta":{"started_at":"2026-05-30T22:30:00Z"},"note":"VERIF FORMULAIRE — a supprimer"}}'>
+    <button type="submit">Envoyer via formulaire</button>
+  </form>
+</div>
+
+<h2>Ce que ça prouve</h2>
+<p class="hint">Si l'une des deux méthodes affiche un succès, alors le
+serveur, les droits d'écriture et la connexion fonctionnent à 100&nbsp;%.
+Le seul problème restant serait alors le cache des vraies pages de test,
+qui se règle en rechargeant avec une adresse modifiée.</p>
+
+<script>
+function lancerTest1() {
+  var sid = 'verif-fetch-' + Date.now();
+  document.getElementById('sid1').textContent = sid;
+  var res = document.getElementById('res1');
+  res.className = 'result wait';
+  res.textContent = 'Envoi en cours…';
+
+  var payload = {
+    proto: 'proto1',
+    session_id: sid,
+    data: {
+      meta: { started_at: new Date().toISOString() },
+      note: 'VERIF FETCH — a supprimer'
+    }
+  };
+
+  fetch('save.php', {
+    method: 'POST',
+    // text/plain = requête "simple" : jamais de contrôle préalable CORS.
+    // save.php lit le corps brut, donc ça marche quand même.
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify(payload)
+  })
+  .then(function (r) {
+    return r.text().then(function (txt) {
+      return { status: r.status, ok: r.ok, txt: txt };
+    });
+  })
+  .then(function (r) {
+    var success = r.ok && r.txt.indexOf('"ok":true') !== -1;
+    res.className = 'result ' + (success ? 'ok' : 'ko');
+    res.textContent =
+      (success ? '✓ SAUVEGARDE OK\n\n' : '✗ ÉCHEC\n\n') +
+      'Statut HTTP : ' + r.status + '\n' +
+      'Réponse du serveur :\n' + r.txt;
+  })
+  .catch(function (e) {
+    res.className = 'result ko';
+    res.textContent =
+      '✗ La requête n\'a pas pu partir (erreur réseau ou blocage navigateur).\n\n' +
+      'Détail : ' + (e && e.message ? e.message : e) + '\n\n' +
+      'Essaie la méthode 2 ci-dessous, qui ne dépend pas de fetch.';
+  });
+}
+window.addEventListener('DOMContentLoaded', lancerTest1);
+</script>
+
+</body>
+</html>

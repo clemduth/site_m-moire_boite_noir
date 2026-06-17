@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les boîtes noires — Mémoire de design sur la transparence des algorithmes publics</title>
+<meta name="description" content="Projet DSAA design (2026) de Clément Duterlay. Rendre lisible le calcul des APL par la CAF. Approche par l'explicabilité adaptative. En collaboration avec l'équipe Inria Prosecco autour du projet Catala.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cambay:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+
+<!-- ============================================================================
+     BANDEAU DE TÊTE PERMANENT (comme la pagination du mémoire)
+     ============================================================================ -->
+<header class="book-header">
+  <div class="book-header__inner">
+    <a href="#hero" class="book-header__tag">les boîtes noires</a>
+    <nav class="book-header__nav">
+      <a href="#enjeux"   data-num="01" class="is-active">enjeux</a>
+      <a href="#catala"   data-num="02">catala</a>
+      <a href="#odap"     data-num="03">odap</a>
+      <a href="#protos"   data-num="04">prototypes</a>
+      <a href="#ress"     data-num="05">ressources</a>
+      <a href="#about"    data-num="06">à propos</a>
+    </nav>
+    <div class="book-header__page">projet dsaa · 2026</div>
+  </div>
+</header>
+
+<!-- ============================================================================
+     HERO
+     ============================================================================ -->
+<section class="hero" id="hero">
+  <div class="hero__text">
+    <div class="hero__meta">projet dsaa · 2026</div>
+    <h1 class="hero__title">
+      Comment rendre<br>
+      <em>transparent</em><br>
+      les boîtes noires.
+    </h1>
+    <p class="hero__lead">
+      Une recherche par le design sur le calcul des aides au logement de la CAF.
+      Le mémoire propose une <em>explicabilité adaptative</em>, une même source
+      technique, plusieurs lectures selon qui s'en saisit.
+    </p>
+    <div class="hero__author">
+      <strong>Clément Duterlay</strong>&nbsp;·&nbsp;DSAA design, École Supérieure de Design de Villefontaine<br>
+      en collaboration avec l'<strong>équipe Inria Prosecco</strong> autour du projet <strong>Catala</strong>
+    </div>
+  </div>
+
+  <!-- bloc Catala décoratif, façon couverture mémoire -->
+  <div class="hero__decor-wrap">
+    <div class="hero__decor-badge">CATALA · article fictif</div>
+    <pre class="hero__decor" aria-hidden="true"><span class="com">## Article 1</span>
+<span class="com">## L'aide au logement est calculée comme la différence</span>
+<span class="com">## entre le loyer plafonné et la participation personnelle</span>
+
+<span class="key">champ d'application</span> CalculALS:
+  <span class="key">définition</span> aide_au_logement <span class="key">égal à</span>
+    (loyer_plafonné + charges_forfait) - participation_personnelle
+
+<span class="com">## Article 2 — exception : foyer modeste</span>
+<span class="key">champ d'application</span> CalculALS:
+  <span class="key">exception définition</span> participation_personnelle
+    <span class="key">sous condition</span> ressources &lt; <span class="nbr">9000</span>
+    <span class="key">conséquence égal à</span> ressources * <span class="nbr">10</span>%
+
+<span class="com">## résultat pour Marie D. ───────────────────────</span>
+<span class="key">aide_au_logement</span> = <span class="res">199 €</span></pre>
+  </div>
+</section>
+
+<!-- ============================================================================
+     01 — ENJEUX
+     ============================================================================ -->
+<section class="section" id="enjeux">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">01</div>
+      <div>
+        <div class="section__sub">Pourquoi expliquer · enjeu démocratique</div>
+        <h2 class="section__title">Les algorithmes publics sont des actes administratifs.</h2>
+      </div>
+    </div>
+
+    <p class="epigraph">
+      « Leur fonctionnement est invisible et inaccessible pour qui ne possède
+      pas les outils techniques ou juridiques pour les décoder. »
+      <span class="epigraph__attr">Hubert Guillaud, <em>Les algorithmes contre la société</em>, 2025</span>
+    </p>
+
+    <div class="def-block">
+      <div class="def-block__label">Algorithme public — selon Étalab</div>
+      <p>Selon le guide <em>« Expliquer les algorithmes publics »</em> publié
+      par Étalab (Direction interministérielle du numérique), un algorithme
+      public se distingue par trois caractéristiques&nbsp;:</p>
+      <ul>
+        <li>Il est opéré au service de <strong>l'intérêt général</strong>.</li>
+        <li>Il sert souvent à <strong>exécuter le droit</strong>, à faire appliquer la loi.</li>
+        <li>Il est <strong>incontournable</strong> : il n'existe pas d'alternative pour l'usager.</li>
+      </ul>
+    </div>
+
+    <p class="section__lead">
+      Quand la CAF, le ministère du Travail ou Parcoursup calculent quelque chose,
+      ce calcul produit un effet juridique sur une personne. Le droit à
+      l'information sur les traitements automatisés existe en droit français
+      depuis la loi de 1978 et a été précisé en 2016 puis en 2018. Dans les
+      faits, cette explication est rarement disponible.
+    </p>
+
+    <div class="enjeux-pull">
+      <em>120</em> algorithmes publics inventoriés par l'ODAP.
+      <em>24</em> sont soumis à l'obligation de transparence du CRPA.
+      Seulement <em>6</em> y sont conformes.
+    </div>
+
+    <div class="section__body">
+      <div class="section__body-margin">Cadre&nbsp;légal</div>
+      <div class="section__body-main">
+        <p>
+          La <strong>loi Informatique et Libertés</strong> du 6 janvier 1978
+          (article 47 dans sa rédaction actuelle, issue de la transposition du
+          RGPD en 2018) impose que le responsable de traitement puisse expliquer,
+          en détail et sous une forme intelligible, comment un traitement
+          automatisé a été mis en œuvre à l'égard d'une personne<span class="note-ref">1</span>.
+        </p>
+        <p>
+          Le <strong>Code des relations entre le public et l'administration</strong>
+          (CRPA, article L. 311-3-1, 2016) précise que toute décision prise sur le
+          fondement d'un traitement algorithmique doit mentionner cette circonstance
+          et donner accès aux règles utilisées<span class="note-ref">2</span>.
+        </p>
+        <p>
+          Le <strong>RGPD</strong> (règlement UE 2016/679, applicable depuis mai
+          2018) ouvre, en son article&nbsp;22, un droit à ne pas faire l'objet
+          d'une décision automatisée et un droit d'obtenir une intervention
+          humaine, dans certaines conditions.
+        </p>
+        <p>
+          Ce cadre légal est en place. Le problème n'est plus d'inventer un droit
+          à l'explication. Il est de <strong>fournir les outils pour le rendre
+          praticable</strong>, des deux côtés du guichet.
+        </p>
+      </div>
+    </div>
+
+    <div class="enjeux-triade">
+      <div class="enjeux-triade__card">
+        <div class="enjeux-triade__num">A · L'allocataire</div>
+        <h3 class="enjeux-triade__title">Qui reçoit la décision</h3>
+        <p class="enjeux-triade__text">
+          Lit un courrier dense. Reconnaît son nom, un chiffre, parfois une variation.
+          Cherche à comprendre ce qui a changé, et s'il peut agir.
+        </p>
+      </div>
+      <div class="enjeux-triade__card">
+        <div class="enjeux-triade__num">B · L'agent</div>
+        <h3 class="enjeux-triade__title">Qui répond au guichet</h3>
+        <p class="enjeux-triade__text">
+          Doit expliquer une décision qu'il n'a pas calculée lui-même. Travaille
+          dans une interface (CRISTAL) qui ne montre pas la règle, seulement le résultat.
+        </p>
+      </div>
+      <div class="enjeux-triade__card">
+        <div class="enjeux-triade__num">C · Le juriste</div>
+        <h3 class="enjeux-triade__title">Qui prépare un recours</h3>
+        <p class="enjeux-triade__text">
+          Doit fonder un moyen juridique sur le calcul. A besoin de la règle exacte,
+          de sa source législative, et d'une trace de l'exécution pour le cas étudié.
+        </p>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div><span class="num">1</span> Loi n° 78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés, art. 47.</div>
+      <div><span class="num">2</span> CRPA, article L. 311-3-1, créé par la loi n° 2016-1321 du 7 octobre 2016 pour une République numérique.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     02 — CATALA
+     ============================================================================ -->
+<section class="section section--alt" id="catala">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">02</div>
+      <div>
+        <div class="section__sub">Le langage qui traduit la loi</div>
+        <h2 class="section__title">Catala : faire dialoguer le droit et le code.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Catala est un langage développé par l'équipe <strong>Inria Prosecco</strong>
+      pour transcrire des textes juridiques en programmes exécutables. Le langage
+      repose sur la <em>programmation littéraire</em>&nbsp;: chaque règle de calcul
+      est rattachée à son article source, dans un même document. Le code épouse
+      la structure des textes juridiques, y compris la logique des exceptions,
+      qui y est omniprésente. Catala est porté par le programme <strong>Apollo</strong>
+      de l'Agence de programmes Numérique de l'Inria.
+    </p>
+
+    <div class="section__sub section__sub--caption">
+      Exemple pédagogique tiré de la documentation Catala
+    </div>
+
+    <div class="catala-pair">
+      <div class="catala-pair__col catala-pair__col--text">
+        <div class="catala-pair__article">Article 1</div>
+        <p class="catala-pair__text">
+          « L'impôt sur le revenu pour une personne est défini comme un pourcentage
+          fixe des revenus de la personne. »
+        </p>
+      </div>
+      <pre class="catala-pair__col catala-pair__col--code"><span class="key">champ d'application</span> CalculImpôtRevenu:
+  <span class="key">définition</span> impôt_revenu <span class="key">égal à</span>
+    personne.revenu * pourcentage_fixe</pre>
+    </div>
+
+    <div class="catala-pair">
+      <div class="catala-pair__col catala-pair__col--text">
+        <div class="catala-pair__article">Article 3 · exception</div>
+        <p class="catala-pair__text">
+          « Si l'individu a à sa charge deux enfants ou plus, alors le pourcentage
+          fixe mentionné à l'article 1 vaut 15&nbsp;%. »
+        </p>
+      </div>
+      <pre class="catala-pair__col catala-pair__col--code"><span class="key">champ d'application</span> CalculImpôtRevenu:
+  <span class="key">exception définition</span> pourcentage_fixe
+    <span class="key">sous condition</span> personne.nombre_enfants >= <span class="nbr">2</span>
+    <span class="key">conséquence égal à</span> <span class="nbr">15</span>%</pre>
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Distinction&nbsp;clé</div>
+      <div class="section__body-main">
+        <p>
+          <strong>Transparence et intelligibilité ne se confondent pas.</strong>
+          La transparence, c'est l'accès&nbsp;: rendre disponible un code,
+          publier un document, ouvrir une base de données. L'intelligibilité,
+          c'est la compréhension&nbsp;: faire en sorte que ce qui est rendu
+          accessible puisse être réellement lu, interprété, utilisé par quelqu'un.
+        </p>
+        <p>
+          Un code publié en COBOL remplit l'obligation de transparence. Il ne
+          permet pas pour autant de comprendre ce que fait le programme. C'est
+          dans cet écart que Catala se loge.
+        </p>
+      </div>
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Pourquoi&nbsp;Catala</div>
+      <div class="section__body-main">
+        <p>
+          Catala produit une <strong>trace d'exécution</strong> : la liste des règles
+          qui ont été appliquées, dans l'ordre, avec leurs valeurs et leurs justifications.
+          Cette trace est exhaustive et reproductible.
+        </p>
+        <p>
+          C'est cette trace qui sert de <strong>source technique commune</strong> aux
+          prototypes de design présentés plus bas. Elle n'est pas montrée telle quelle
+          à l'allocataire — qui n'a pas à lire du code. Elle est rendue lisible
+          autrement, selon qui s'en saisit.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     03 — ODAP
+     ============================================================================ -->
+<section class="section" id="odap">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">03</div>
+      <div>
+        <div class="section__sub">Le constat en chiffres</div>
+        <h2 class="section__title">L'inventaire des algorithmes publics, et ce qu'il révèle.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      L'<strong>Observatoire des algorithmes publics</strong> (ODAP) recense les
+      systèmes utilisés par les administrations françaises et vérifie leur conformité
+      aux obligations légales de transparence. Les chiffres sont sans appel.
+    </p>
+
+    <div class="odap-figures">
+      <div class="odap-figure">
+        <div class="odap-figure__num"><em>120</em></div>
+        <div class="odap-figure__sub">algorithmes publics</div>
+        <p class="odap-figure__text">
+          Inventoriés à ce jour : Parcoursup, APL, RSA, contrôle fiscal, scoring
+          de risque CAF, attribution de bourses, etc.
+        </p>
+      </div>
+      <div class="odap-figure">
+        <div class="odap-figure__num"><em>24</em></div>
+        <div class="odap-figure__sub">soumis au CRPA</div>
+        <p class="odap-figure__text">
+          Soumis à l'obligation de transparence prévue par le Code des relations
+          entre le public et l'administration (art. L. 311-3-1).
+        </p>
+      </div>
+      <div class="odap-figure">
+        <div class="odap-figure__num"><em>6</em></div>
+        <div class="odap-figure__sub">conformes à l'obligation</div>
+        <p class="odap-figure__text">
+          Seulement six algorithmes parmi les vingt-quatre soumis publient
+          effectivement les informations dues. L'écart est béant.
+        </p>
+      </div>
+    </div>
+
+    <div class="section__body section__body--spaced">
+      <div class="section__body-margin">Lire&nbsp;l'inventaire</div>
+      <div class="section__body-main">
+        <p>
+          L'inventaire ODAP a permis de cadrer ce mémoire : il a fourni la liste
+          des cas, leur niveau de documentation, leur statut juridique. Le cas
+          retenu — le calcul des aides au logement par la CAF — est l'un des
+          plus utilisés et l'un des moins lisibles côté usager.
+        </p>
+        <p>
+          Sur les mêmes 120 algorithmes, <strong>18 publient un budget</strong>
+          et <strong>24 publient des évaluations</strong>. Pour le reste, ni
+          coût public, ni évaluation indépendante.
+        </p>
+        <p>
+          L'inventaire est public et consultable sur <a href="https://odap.fr/inventaire/" target="_blank" rel="noopener" class="link-inline">odap.fr/inventaire</a>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     04 — PROTOTYPES
+     ============================================================================ -->
+<section class="section section--alt" id="protos">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">04</div>
+      <div>
+        <div class="section__sub">Trois prototypes, trois lectures, une seule source</div>
+        <h2 class="section__title">L'explicabilité adaptative, en pratique.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Trois prototypes interactifs, conçus à partir d'une même trace Catala.
+      Chacun s'adresse à un public différent — allocataire, allocataire prospectif,
+      juriste — avec ses besoins propres. Ils sont accessibles ci-dessous, suivis d'un quatrième prototype de test.
+    </p>
+
+    <div class="protos">
+
+      <a href="proto1.html" class="proto-card">
+        <div class="proto-card__visual proto-card__visual--lettre">
+          <div class="lettre-from">CAF · DETTE 420€</div>
+          <div class="lettre-body">
+            Madame,<br><br>
+            Compte tenu des <mark>informations</mark> en notre possession, nous avons procédé à la régularisation…
+          </div>
+        </div>
+        <div class="proto-card__body">
+          <div class="proto-card__num">Prototype 01</div>
+          <div class="proto-card__title">La décision dépliable</div>
+          <div class="proto-card__pub">Pour l'allocataire</div>
+          <p class="proto-card__text">
+            Un courrier de notification de dette CAF, augmenté. Chaque chiffre,
+            chaque mot technique se déplie en quatre couches : langage clair,
+            article de loi, trace Catala, contexte politique.
+          </p>
+          <div class="proto-card__cta">Tester le prototype</div>
+        </div>
+      </a>
+
+      <a href="proto2.html" class="proto-card">
+        <div class="proto-card__visual proto-card__visual--calendar">
+          <div class="cal-head">
+            <span>Janv. 2026</span>
+            <span><em>ALS sur 12 mois</em></span>
+            <span>Déc. 2026</span>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>J</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>F</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>M</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--mid"></div>A</div>
+            <div class="cal-month has-event">
+              <div class="cal-icon">📦</div>
+              <div class="cal-bar cal-bar--high"></div>M
+            </div>
+            <div class="cal-month"><div class="cal-bar cal-bar--high"></div>J</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--high"></div>J</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--high"></div>A</div>
+            <div class="cal-month has-event">
+              <div class="cal-icon is-accent">💼</div>
+              <div class="cal-bar cal-bar--low"></div>S
+            </div>
+            <div class="cal-month"><div class="cal-bar cal-bar--low"></div>O</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--low"></div>N</div>
+            <div class="cal-month"><div class="cal-bar cal-bar--low"></div>D</div>
+          </div>
+          <div class="cal-foot">
+            <span>📦 déménagement</span>
+            <span><strong>·</strong></span>
+            <span>💼 reprise d'emploi</span>
+          </div>
+        </div>
+        <div class="proto-card__body">
+          <div class="proto-card__num">Prototype 02</div>
+          <div class="proto-card__title">Le simulateur de vie</div>
+          <div class="proto-card__pub">Pour l'allocataire prospectif</div>
+          <p class="proto-card__text">
+            Une frise de douze mois sur laquelle on glisse des blocs de changement
+            de vie : déménagement, reprise d'emploi, naissance. Le simulateur
+            calcule l'effet sur l'ALS et expose la trace du calcul.
+          </p>
+          <div class="proto-card__cta">Tester le prototype</div>
+        </div>
+      </a>
+
+      <a href="proto3.html" class="proto-card">
+        <div class="proto-card__visual proto-card__visual--catala">
+          <div class="cat-head">
+            <span><em>Catala</em> · trace L831-1 CSS</span>
+            <span>cas Marie D.</span>
+          </div>
+          <span class="cat-line"><span class="key">champ d'application</span> CalculALS:</span>
+          <span class="cat-line">  <span class="key">définition</span> participation</span>
+          <span class="cat-line">    <span class="key">égal à</span> revenus * <span class="num">10</span>%</span>
+          <span class="cat-line is-flagged">  <span class="key">exception définition</span> participation<span class="cat-flag-label">moyen</span></span>
+          <span class="cat-line is-flagged">    <span class="key">sous condition</span> ressources &lt; <span class="num">9000</span></span>
+          <span class="cat-line is-flagged">    <span class="key">conséquence</span> = <span class="num">0</span></span>
+          <span class="cat-line"><span class="com">## non appliquée alors qu'elle aurait dû</span></span>
+          <div class="cat-foot"><strong>→</strong> moyen retenu pour le recours CRA</div>
+        </div>
+        <div class="proto-card__body">
+          <div class="proto-card__num">Prototype 03</div>
+          <div class="proto-card__title">La double lecture</div>
+          <div class="proto-card__pub">Pour le juriste</div>
+          <p class="proto-card__text">
+            Une extension navigateur fictive qui, sur les pages Légifrance, donne
+            accès à la traduction Catala de l'article et à sa trace d'exécution
+            pour un cas réel. Pour identifier les moyens d'un recours.
+          </p>
+          <div class="proto-card__cta">Tester le prototype</div>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="protos-row4" style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;margin-top:26px;">
+
+      <a href="proto4.html" class="proto-card" style="flex:0 1 33%;min-width:280px;">
+        <div class="proto-card__visual proto-card__visual--catala">
+          <div class="cat-head">
+            <span><em>Catala</em> · 20 variables</span>
+            <span>cas-test · 463,32 €</span>
+          </div>
+          <span class="cat-line"><span class="key">aide_finale</span> = <span class="num">463,32 €</span></span>
+          <span class="cat-line">  <span class="key">←</span> participation_personnelle</span>
+          <span class="cat-line">  <span class="key">←</span> plafond_loyer_d823_16_2</span>
+          <span class="cat-line">  <span class="key">←</span> …</span>
+          <div class="cat-foot"><strong>▣</strong> la boîte noire, ouverte étage par étage</div>
+        </div>
+        <div class="proto-card__body">
+          <div class="proto-card__num">Prototype 04 · test</div>
+          <div class="proto-card__title">La tour de calcul</div>
+          <div class="proto-card__pub">Exploration visuelle · non finalisé</div>
+          <p class="proto-card__text">
+            Le calcul APL réel monté en bâtiment isométrique 3D, un étage par variable.
+            Une maquette de test pour explorer comment présenter un calcul complexe et
+            navigable, plus qu'un outil abouti.
+          </p>
+          <div class="proto-card__cta">Voir le prototype</div>
+        </div>
+      </a>
+
+      <div class="section__body section__body--spaced" style="flex:1 1 340px;margin-top:0;">
+        <div class="section__body-margin">Méthode</div>
+        <div class="section__body-main">
+          <p>
+            Les trois prototypes sont des <strong>prototypes interactifs</strong> qui
+            mettent en évidence un même geste de design : <em>donner forme à la trace
+            Catala selon qui la lit</em>. Ils ne sont pas des outils déployables en l'état.
+            Ils servent à éprouver la promesse de l'explicabilité adaptative et à
+            tester ses limites avec les publics concernés.
+          </p>
+          <p>
+            Un <strong>quatrième prototype</strong> est en cours&nbsp;: <em>la tour de calcul</em>.
+            Une maquette de test, encore non finalisée, qui explore comment présenter
+            visuellement un calcul complexe et navigable. Elle est accessible ci-dessus.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     05 — RESSOURCES
+     ============================================================================ -->
+<section class="section" id="ress">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">05</div>
+      <div>
+        <div class="section__sub">Pour aller plus loin</div>
+        <h2 class="section__title">Lire, télécharger, prolonger.</h2>
+      </div>
+    </div>
+
+    <p class="section__lead">
+      Le mémoire intégral, la bibliographie, et les ressources institutionnelles
+      sur lesquelles ce travail s'appuie.
+    </p>
+
+    <div class="ress-grid">
+
+      <div>
+        <div class="ress-col__title">Comprendre</div>
+        <ul class="ress-list">
+          <li>
+            <a href="https://odap.fr/" target="_blank" rel="noopener">ODAP — Observatoire des algorithmes publics</a>
+            <span class="tag">site</span>
+          </li>
+          <li>
+            <a href="https://catala-lang.org/fr/" target="_blank" rel="noopener">Catala — langage juridique exécutable</a>
+            <span class="tag">site</span>
+          </li>
+          <li>
+            <a href="https://guides.data.gouv.fr/guides/autres-ressources-utiles/les-algorithmes-publics-pourquoi-et-comment-les-expliquer" target="_blank" rel="noopener">Etalab — Guide des algorithmes publics</a>
+            <span class="tag">guide</span>
+          </li>
+          <li>
+            <a href="https://www.defenseurdesdroits.fr/" target="_blank" rel="noopener">Défenseur des droits — rapports annuels</a>
+            <span class="tag">institution</span>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="ress-col__title">Faire</div>
+        <ul class="ress-list">
+          <li>
+            <a href="docs/memoire_les_boites_noires.pdf" target="_blank" rel="noopener">Mémoire intégral · PDF</a>
+            <span class="tag">pdf</span>
+          </li>
+          <li>
+            <a href="proto1.html">Prototype 01 — La décision dépliable</a>
+            <span class="tag">html</span>
+          </li>
+          <li>
+            <a href="proto2.html">Prototype 02 — Le simulateur de vie</a>
+            <span class="tag">html</span>
+          </li>
+          <li>
+            <a href="proto3.html">Prototype 03 — La double lecture</a>
+            <span class="tag">html</span>
+          </li>
+          <li>
+            <a href="proto4.html">Prototype 04 — La tour de calcul <em>(test)</em></a>
+            <span class="tag">html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="ress-col__title">Aller plus loin</div>
+        <ul class="ress-list">
+          <!-- TODO : compléter les URLs (HAL Inria, Cairn, etc.) -->
+          <li>
+            <a href="https://inria.hal.science/hal-04391612v1" target="_blank" rel="noopener">Merigoux et al., Catala, Inria RR-9535, 2024</a>
+            <span class="tag">recherche</span>
+          </li>
+          <li>
+            <a href="#">Gesbert, L'explication par la paresse, JFLA 2025</a>
+            <span class="tag">recherche</span>
+          </li>
+          <li>
+            <a href="https://www.seuil.com/ouvrage/a-quoi-revent-les-algorithmes-dominique-cardon/9782021279962" target="_blank" rel="noopener">Cardon, À quoi rêvent les algorithmes, 2015</a>
+            <span class="tag">essai</span>
+          </li>
+          <li>
+            <a href="https://www.raisonsdagir-editions.org/catalogue/controler-les-assistes/" target="_blank" rel="noopener">Dubois, Contrôler les assistés, 2021</a>
+            <span class="tag">essai</span>
+          </li>
+          <li>
+            <a href="https://lafabrique.fr/les-algorithmes-contre-la-societe/" target="_blank" rel="noopener">Guillaud, Les algorithmes contre la société, 2025</a>
+            <span class="tag">essai</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     06 — À PROPOS
+     ============================================================================ -->
+<section class="section section--dark" id="about">
+  <div class="section__inner">
+
+    <div class="section__head">
+      <div class="section__num">06</div>
+      <div>
+        <div class="section__sub">L'auteur · l'encadrement · les partenaires</div>
+        <h2 class="section__title">Un mémoire écrit avec ceux qui font.</h2>
+      </div>
+    </div>
+
+    <div class="about-grid">
+
+      <div class="about-block">
+        <div class="about-block__title">Le mémoire</div>
+        <p>
+          <strong>Les boîtes noires.</strong> Mémoire professionnel de DSAA design
+          <em>(design, interactions et alternatives numériques)</em>,
+          École Supérieure de Design de Villefontaine, soutenu en 2026.
+        </p>
+        <p>
+          Une recherche par le design sur la transparence des algorithmes publics.
+          Le cas étudié : le calcul des aides au logement par la CAF (logiciel
+          CRISTAL, écrit en COBOL).
+        </p>
+        <p>
+          La proposition théorique centrale : <strong>l'explicabilité adaptative</strong>.
+          Une même source technique — la trace Catala — peut être rendue lisible
+          de plusieurs façons selon qui s'en saisit. Trois prototypes en éprouvent
+          la promesse.
+        </p>
+      </div>
+
+      <div class="about-block">
+        <div class="about-block__title">L'encadrement</div>
+        <p><strong>Co-direction du mémoire</strong></p>
+        <ul>
+          <li><strong>Stéphanie Fabre</strong> — DSAA design, École Supérieure de Design de Villefontaine</li>
+          <li><strong>Estelle Hary</strong> — designer, Inria Prosecco</li>
+        </ul>
+
+        <p class="heading"><strong>Collaboration scientifique</strong></p>
+        <ul>
+          <li>Équipe-projet <strong>Inria PROSECCO</strong>, autour du projet Catala</li>
+        </ul>
+
+        <p class="heading"><strong>Alternance</strong></p>
+        <ul>
+          <li><strong>Erasme</strong> — Laboratoire d'innovation publique de la Métropole de Lyon, Pôle Pixel (Villeurbanne)</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================================
+     FOOTER
+     ============================================================================ -->
+<footer class="foot">
+  <div class="foot__inner">
+    <div class="foot__brand">
+      <strong>Les boîtes noires</strong>
+      <small>« Comment rendre transparent les boîtes noires »</small>
+    </div>
+    <div class="foot__col">
+      <h4>Sections</h4>
+      <a href="#enjeux">01 Enjeux</a>
+      <a href="#catala">02 Catala</a>
+      <a href="#odap">03 ODAP</a>
+      <a href="#protos">04 Prototypes</a>
+      <a href="#ress">05 Ressources</a>
+      <a href="#about">06 À propos</a>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div>typographies : sligoil · velvetyne · ariel martín pérez — cambay · google fonts · pooja saxena</div>
+    <div>© 2026 · clément duterlay</div>
+  </div>
+</footer>
+
+<script src="js/index.js" defer></script>
+
+</body>
+</html>

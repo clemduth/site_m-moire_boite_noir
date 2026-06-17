@@ -1,0 +1,17 @@
+# dépendances
+node_modules/
+
+# résultats de tests utilisateurs (données collectées — ne pas publier)
+resultats/*.csv
+resultats/.*.lock
+
+# config locale de l'éditeur / outils
+.claude/settings.local.json
+
+# système
+.DS_Store
+Thumbs.db
+
+# contenus hébergés sur la même racine web mais sans rapport avec le mémoire
+dut-home/
+carte-bouilloires-9d4e2a.html

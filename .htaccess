@@ -1,0 +1,8 @@
+# Forcer la revalidation des pages et scripts pour éviter qu'un
+# navigateur serve une ancienne version mise en cache.
+# Bloc protégé : si mod_headers n'est pas actif, Apache ignore sans erreur.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

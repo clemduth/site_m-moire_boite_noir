@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proto 4 — La tour de calcul APL</title>
+<style>
+  :root{--papier:#f1ede2;--encre:#171717;--accent:#d4452f;--gris:#8a8578;--ligne:#d9d4c6;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{font-family:"Courier New",monospace;color:var(--encre);overflow:hidden;background:var(--papier);}
+  #scene{position:fixed;inset:0;background-color:var(--papier);
+    background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(rgba(0,0,0,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.09) 1px,transparent 1px);
+    background-size:14px 14px,14px 14px,70px 70px,70px 70px;}
+  canvas{display:block;}
+  #grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.06;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  #nav{position:fixed;top:0;left:0;bottom:0;width:288px;background:rgba(241,237,226,.92);border-right:1.5px solid var(--encre);padding:22px 18px;display:flex;flex-direction:column;gap:12px;z-index:5;backdrop-filter:blur(2px);}
+  #nav h1{font-size:15px;letter-spacing:.5px;text-transform:uppercase;}
+  #nav .sous{font-size:11px;color:var(--gris);margin-top:-7px;line-height:1.4;}
+  #ouvrir{border:1.5px solid var(--encre);background:var(--encre);color:var(--papier);font-family:inherit;font-size:12px;letter-spacing:.5px;padding:11px;cursor:pointer;text-transform:uppercase;}
+  #ouvrir:hover{background:var(--accent);border-color:var(--accent);}
+  #search{border:1.5px solid var(--encre);background:transparent;padding:8px 10px;font-family:inherit;font-size:12px;color:var(--encre);}
+  #search::placeholder{color:var(--gris);}
+  #liste{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;}
+  .etape-btn{text-align:left;border:none;background:transparent;font-family:inherit;font-size:11.5px;color:var(--encre);padding:6px 8px;cursor:pointer;display:flex;gap:7px;border-left:2px solid transparent;}
+  .etape-btn:hover{background:rgba(0,0,0,.05);}
+  .etape-btn.actif{border-left:2px solid var(--accent);color:var(--accent);font-weight:bold;}
+  .etape-btn .num{color:var(--gris);min-width:18px;}
+  .etape-btn.actif .num{color:var(--accent);}
+  #updown{display:flex;gap:8px;}
+  #updown button{flex:1;border:1.5px solid var(--encre);background:transparent;font-family:inherit;font-size:12px;padding:8px;cursor:pointer;color:var(--encre);}
+  #updown button:hover{background:var(--encre);color:var(--papier);}
+  #detail{position:fixed;top:0;right:0;bottom:0;width:360px;background:rgba(241,237,226,.96);border-left:1.5px solid var(--encre);padding:24px 22px;z-index:5;overflow-y:auto;transform:translateX(100%);transition:transform .35s ease;backdrop-filter:blur(2px);}
+  #detail.ouvert{transform:translateX(0);}
+  #detail .etape-num{font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;}
+  #detail h2{font-size:16px;margin:6px 0 4px;line-height:1.3;word-break:break-word;}
+  #detail .ref{font-size:11px;color:var(--gris);}
+  #detail .bloc-titre{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gris);margin:16px 0 6px;border-bottom:1px solid var(--ligne);padding-bottom:4px;}
+  #detail .machine{font-size:12px;font-style:italic;}
+  #detail .clair{font-family:Georgia,serif;font-size:14px;line-height:1.55;}
+  #detail .catala{background:#171717;color:#f1ede2;font-size:11.5px;line-height:1.55;padding:12px 14px;white-space:pre-wrap;margin-top:4px;overflow-x:auto;}
+  #detail .catala .kw{color:#c98bdb;} #detail .catala .reprise{color:#f5b841;} #detail .catala .res{color:#7fd4a0;} #detail .catala .cm{color:#8a8578;}
+  #detail .trace{display:flex;flex-direction:column;gap:4px;}
+  #detail .trace .el{display:flex;flex-direction:column;font-size:11.5px;padding:4px 6px;border-left:3px solid var(--gris);cursor:pointer;}
+  #detail .trace .el:hover{background:rgba(0,0,0,.04);}
+  #detail .trace .el.in{border-color:#e0a32e;} #detail .trace .el.out{border-color:#3f9d6f;} #detail .trace .el.par{border-color:#5b85ad;}
+  #detail .trace .el .v{color:var(--gris);font-size:10.5px;}
+  #detail .ferme{position:absolute;top:18px;right:18px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--encre);}
+  #detail .note{font-size:10px;color:var(--gris);margin-top:18px;font-style:italic;line-height:1.4;}
+  #aide{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--gris);background:rgba(241,237,226,.8);padding:6px 14px;border:1px solid var(--ligne);z-index:4;}
+  #tip{position:fixed;z-index:6;display:none;background:#171717;color:#f1ede2;padding:9px 12px;font-size:11px;line-height:1.45;max-width:240px;transform:translate(-50%,-138%);pointer-events:none;border-left:3px solid var(--accent);}
+  #tip .role{font-size:9px;letter-spacing:1px;text-transform:uppercase;opacity:.75;}
+  #tip .nm{font-size:12px;margin:2px 0;word-break:break-word;}
+  #testbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:7;max-width:640px;background:var(--accent);color:#fff;font-size:11.5px;line-height:1.4;padding:9px 38px 9px 16px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.18);}
+  #testbar b{text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+  #testbar a{color:#fff;}
+  #testbar .x{position:absolute;top:4px;right:8px;border:none;background:transparent;color:#fff;font-size:16px;cursor:pointer;line-height:1;}
+</style>
+</head>
+<body>
+  <div id="scene"></div><div id="grain"></div>
+  <div id="testbar">
+    <b>prototype test</b>
+    <span>maquette non finalisée, faite pour explorer visuellement comment présenter un calcul complexe. <a href="index.html">← les boîtes noires</a></span>
+    <button class="x" onclick="this.parentNode.remove()" aria-label="fermer">×</button>
+  </div>
+  <aside id="nav">
+    <h1>La tour de calcul</h1>
+    <p class="sous">APL · cas-test Catala<br>3 pers. à charge · 15 000 € · → 463,32 €</p>
+    <button id="ouvrir">▣ ouvrir la boîte</button>
+    <input id="search" type="text" placeholder="chercher une variable...">
+    <div id="liste"></div>
+    <div id="updown"><button id="bas">↓ descendre</button><button id="haut">↑ monter</button></div>
+  </aside>
+  <aside id="detail">
+    <button class="ferme" id="ferme">×</button>
+    <div class="etape-num" id="d-num"></div>
+    <h2 id="d-titre"></h2>
+    <div class="ref" id="d-ref"></div>
+    <div class="bloc-titre">La machine</div><div class="machine" id="d-machine"></div>
+    <div class="bloc-titre">Suivi du calcul</div><div class="trace" id="d-trace"></div>
+    <div class="bloc-titre">En Catala</div><div class="catala" id="d-catala"></div>
+    <p class="note">Code et valeurs tirés du graphe de calcul APL réel (Gesbert, JFLA 2025, fig. 8) sur le cas-test public de Catala. Clique un nœud coloré ou une ligne de trace pour suivre une valeur.</p>
+  </aside>
+  <div id="aide">clic pour ouvrir · glisser pour tourner · clique un étage pour zoomer · reclic ou fond pour dézoomer</div>
+  <div id="tip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* helper de coloration Catala */
+function K(s){return s.replace(/\b(champ d'application|définition|égal à|selon|sous forme|si|alors|sinon|arrondi|décimal de|et|sous condition|conséquence|exception)\b/g,'<span class="kw">$1</span>');}
+/* ---------- DONNÉES : calcul APL réel (JFLA 2025 fig.8) ---------- */
+const ETAPES = [
+ {nom:"nombre_personnes_à_charge",op:"in",glyph:"IN",ref:"donnée d'entrée · dossier",
+  catala:`<span class="cm"># Donnée d'entrée du foyer</span>\nchamp d'application CalculAPL:\n  <span class="res">nombre_personnes_à_charge</span> = 3`,
+  trace:[["par","saisie","dossier CAF","donnée d'entrée"],["out","nombre_personnes_à_charge","3","→ étages 6, 7, 8"]]},
+ {nom:"ressources_ménage_arrondies",op:"in",glyph:"IN",ref:"donnée d'entrée · avis fiscal",
+  catala:`<span class="cm"># Ressources du ménage, arrondies</span>\nchamp d'application CalculAPL:\n  <span class="res">ressources_ménage_arrondies</span> = 15 000,00 €`,
+  trace:[["par","saisie","avis fiscal","donnée d'entrée"],["out","ressources_ménage_arrondies","15 000,00 €","→ étage 14"]]},
+ {nom:"abattement_forfaitaire_d823_17",op:"const",glyph:"k",ref:"art. D823-17 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">abattement_forfaitaire_d823_17</span> égal à\n    selon situation_familiale sous forme\n    -- PersonneSeule: ...\n    -- Couple: ...\n    <span class="cm"># 3 pers. à charge → 9 408,00 €</span>\n    = 9 408,00 €`,
+  trace:[["par","composition","barème D823-17","paramètre"],["out","abattement_forfaitaire_d823_17","9 408,00 €","→ étage 14"]]},
+ {nom:"taux_composition_familiale",op:"const",glyph:"k",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">taux_composition_familiale</span> égal à\n    selon nombre_personnes_à_charge sous forme\n    <span class="cm"># 3 pers. → 0,020 1</span>\n    = 0,020 1`,
+  trace:[["par","composition","barème D823-16","paramètre"],["out","taux_composition_familiale","0,020 1","→ étage 13"]]},
+ {nom:"montant_forfaitaire_d823_16",op:"const",glyph:"k",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">montant_forfaitaire_d823_16</span> égal à 5,00 €`,
+  trace:[["par","barème","constante D823-16","constante"],["out","montant_forfaitaire_d823_16","5,00 €","→ étage 17"]]},
+ {nom:"montant_forfaitaire_charges_d823_16",op:"scale",glyph:"×",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">montant_forfaitaire_charges_d823_16</span> égal à\n    58,08 € + 13,17 € × (décimal de <span class="reprise">nombre_personnes_à_charge</span>)\n  <span class="cm"># 58,08 + 13,17 × 3 = 97,59 €</span>`,
+  trace:[["in","nombre_personnes_à_charge","3","← étage 1"],["out","montant_forfaitaire_charges_d823_16","97,59 €","→ étages 9, 16"]]},
+ {nom:"plafond_loyer_d823_16_2",op:"scale",glyph:"×",ref:"art. D823-16 CCH · arrêté 27/09/2019",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">plafond_loyer_d823_16_2</span> égal à\n    selon zone sous forme\n    -- Zone1: 504,84 € + 73,18 € × (décimal de (<span class="reprise">nombre_personnes_à_charge</span> - 1))\n    -- Zone2: 435,24 € + 63,15 € × (décimal de (<span class="reprise">nombre_personnes_à_charge</span> - 1))\n    -- Zone3: 407,03 € + 58,73 € × ...\n  <span class="cm"># Zone2 · 435,24 + 63,15 × 2 = 561,54 €</span>`,
+  trace:[["in","nombre_personnes_à_charge","3","← étage 1"],["out","plafond_loyer_d823_16_2","561,54 €","→ étages 9, 10, 16"]]},
+ {nom:"loyer_référence",op:"scale",glyph:"×",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">loyer_référence</span> égal à\n    383,28 € + 55,79 € × (décimal de (<span class="reprise">nombre_personnes_à_charge</span> - 1))\n  <span class="cm"># 383,28 + 55,79 × 2 = 494,86 €</span>`,
+  trace:[["in","nombre_personnes_à_charge","3","← étage 1"],["out","loyer_référence","494,86 €","→ étage 10"]]},
+ {nom:"participation_minimale",op:"combine",glyph:"⊕",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">participation_minimale</span> égal à\n    (<span class="reprise">plafond_loyer_d823_16_2</span>\n     + <span class="reprise">montant_forfaitaire_charges_d823_16</span>) × 8,5%\n  <span class="cm"># (561,54 + 97,59) × 8,5% = 56,03 €</span>`,
+  trace:[["in","plafond_loyer_d823_16_2","561,54 €","← étage 7"],["in","montant_forfaitaire_charges_d823_16","97,59 €","← étage 6"],["out","participation_minimale","56,03 €","→ étage 15"]]},
+ {nom:"rapport_loyers",op:"ratio",glyph:"÷",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">rapport_loyers</span> égal à\n    (arrondi (<span class="reprise">plafond_loyer_d823_16_2</span>\n      / <span class="reprise">loyer_référence</span> × 100,0)) / 100,0\n  <span class="cm"># arrondi(561,54 / 494,86 × 100) / 100 = 1,13</span>`,
+  trace:[["in","plafond_loyer_d823_16_2","561,54 €","← étage 7"],["in","loyer_référence","494,86 €","← étage 8"],["out","rapport_loyers","1,13","→ étage 11"]]},
+ {nom:"taux_loyer_éligible_formule",op:"formula",glyph:"ƒ",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">taux_loyer_éligible_formule</span> égal à\n    0,45% × 30,0% + 0,68% × <span class="reprise">rapport_loyers</span> - 0,75\n  <span class="cm"># = 0,003 934</span>`,
+  trace:[["in","rapport_loyers","1,13","← étage 10"],["out","taux_loyer_éligible_formule","0,003 934","→ étage 12"]]},
+ {nom:"taux_loyer_éligible_taux_arrondi",op:"round",glyph:"≈",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">taux_loyer_éligible_taux_arrondi</span> égal à\n    (arrondi (<span class="reprise">taux_loyer_éligible_formule</span> × 100 000,0)) / 100 000,0\n  <span class="cm"># = 0,003 93</span>`,
+  trace:[["in","taux_loyer_éligible_formule","0,003 934","← étage 11"],["out","taux_loyer_éligible_taux_arrondi","0,003 93","→ étage 13"]]},
+ {nom:"taux_prise_compte_ressources",op:"add",glyph:"+",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">taux_prise_compte_ressources</span> égal à\n    <span class="reprise">taux_composition_familiale</span>\n    + <span class="reprise">taux_loyer_éligible_taux_arrondi</span>\n  <span class="cm"># 0,020 1 + 0,003 93 = 0,024 03</span>`,
+  trace:[["in","taux_composition_familiale","0,020 1","← étage 4"],["in","taux_loyer_éligible_taux_arrondi","0,003 93","← étage 12"],["out","taux_prise_compte_ressources","0,024 03","→ étage 14"]]},
+ {nom:"participation_ressources",op:"combine",glyph:"⊕",ref:"art. D823-17 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">participation_ressources</span> égal à\n    (<span class="reprise">ressources_ménage_arrondies</span>\n     - <span class="reprise">abattement_forfaitaire_d823_17</span>)\n    × <span class="reprise">taux_prise_compte_ressources</span>\n  <span class="cm"># (15 000 - 9 408) × 0,024 03 = 134,38 €</span>`,
+  trace:[["in","ressources_ménage_arrondies","15 000,00 €","← étage 2"],["in","abattement_forfaitaire_d823_17","9 408,00 €","← étage 3"],["in","taux_prise_compte_ressources","0,024 03","← étage 13"],["out","participation_ressources","134,38 €","→ étage 15"]]},
+ {nom:"participation_personnelle",op:"add",glyph:"+",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">participation_personnelle</span> égal à\n    <span class="reprise">participation_minimale</span>\n    + <span class="reprise">participation_ressources</span>\n  <span class="cm"># 56,03 + 134,38 = 190,41 €</span>`,
+  trace:[["in","participation_minimale","56,03 €","← étage 9"],["in","participation_ressources","134,38 €","← étage 14"],["out","participation_personnelle","190,41 €","→ étage 16"]]},
+ {nom:"aide_finale",op:"combine",glyph:"⊕",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">aide_finale</span> égal à\n    <span class="reprise">plafond_loyer_d823_16_2</span>\n    + <span class="reprise">montant_forfaitaire_charges_d823_16</span>\n    - <span class="reprise">participation_personnelle</span>\n  <span class="cm"># 561,54 + 97,59 - 190,41 = 468,72 €</span>`,
+  trace:[["in","plafond_loyer_d823_16_2","561,54 €","← étage 7"],["in","montant_forfaitaire_charges_d823_16","97,59 €","← étage 6"],["in","participation_personnelle","190,41 €","← étage 15"],["out","aide_finale","468,72 €","→ étage 17"]]},
+ {nom:"aide_finale_minoration_forfaitaire",op:"sub",glyph:"−",ref:"art. D823-16 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">aide_finale_minoration_forfaitaire</span> égal à\n    <span class="reprise">aide_finale</span> - <span class="reprise">montant_forfaitaire_d823_16</span>\n  <span class="cm"># 468,72 - 5,00 = 463,72 €</span>`,
+  trace:[["in","aide_finale","468,72 €","← étage 16"],["in","montant_forfaitaire_d823_16","5,00 €","← étage 5"],["out","aide_finale_minoration_forfaitaire","463,72 €","→ étages 18, 19"]]},
+ {nom:"crds",op:"scale",glyph:"×",ref:"contribution sociale · CRDS",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">crds</span> égal à\n    <span class="reprise">aide_finale_minoration_forfaitaire</span> × 0,5%\n  <span class="cm"># 463,72 × 0,5% = 2,32 €</span>`,
+  trace:[["in","aide_finale_minoration_forfaitaire","463,72 €","← étage 17"],["out","crds","2,32 €","→ étages 19, 20"]]},
+ {nom:"aide_finale_moins_crds_arrondie",op:"round",glyph:"≈",ref:"art. D823 CCH",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">aide_finale_moins_crds_arrondie</span> égal à\n    arrondi (<span class="reprise">aide_finale_minoration_forfaitaire</span>\n      - <span class="reprise">crds</span> - 0,50 €)\n  <span class="cm"># arrondi(463,72 - 2,32 - 0,50) = 461,00 €</span>`,
+  trace:[["in","aide_finale_minoration_forfaitaire","463,72 €","← étage 17"],["in","crds","2,32 €","← étage 18"],["out","aide_finale_moins_crds_arrondie","461,00 €","→ étage 20"]]},
+ {nom:"aide_finale_contributions_sociales_arrondie",op:"final",glyph:"=",ref:"art. D823 CCH · décision",
+  catala:`champ d'application CalculAPL:\n  définition <span class="res">aide_finale</span> égal à\n    <span class="reprise">aide_finale_moins_crds_arrondie</span> + <span class="reprise">crds</span>\n  <span class="cm"># 461,00 + 2,32 = 463,32 € — décision rendue</span>`,
+  trace:[["in","aide_finale_moins_crds_arrondie","461,00 €","← étage 19"],["in","crds","2,32 €","← étage 18"],["out","aide_finale","463,32 €","décision rendue"]]},
+];
+const TEXSEQ=["hatch","grid","stipple","wavy","flow"];
+ETAPES.forEach((e,i)=>{e.tex=TEXSEQ[i%TEXSEQ.length];e.catala=K(e.catala);});
+const ROLE={in:{c:0xe0a32e,t:"Entrée"},out:{c:0x3f9d6f,t:"Sortie"},par:{c:0x5b85ad,t:"Paramètre"}};
+
+/* ---------- RNG ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---------- TEXTURES ---------- */
+const PAP="#efe9db",ENC="#171717";
+function base(){const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");x.fillStyle=PAP;x.fillRect(0,0,256,256);return[c,x];}
+function toTex(c){const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;}
+const TEX={
+  grid(){const[c,x]=base();x.strokeStyle=ENC;x.lineWidth=1.2;for(let i=0;i<=256;i+=20){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}return toTex(c);},
+  hatch(){const[c,x]=base();x.strokeStyle=ENC;x.lineWidth=1.6;for(let i=-256;i<256;i+=7){x.beginPath();x.moveTo(i,0);x.lineTo(i+256,256);x.stroke();}return toTex(c);},
+  stipple(){const[c,x]=base();x.fillStyle=ENC;for(let i=0;i<5200;i++){const r=Math.random()*1.6+.3;x.beginPath();x.arc(Math.random()*256,Math.random()*256,r,0,7);x.fill();}return toTex(c);},
+  wavy(){const[c,x]=base();x.strokeStyle=ENC;x.lineWidth=1.4;for(let y=6;y<256;y+=11){x.beginPath();for(let px=0;px<=256;px+=4){const yy=y+Math.sin((px/22)+y)*4;px===0?x.moveTo(px,yy):x.lineTo(px,yy);}x.stroke();}return toTex(c);},
+  flow(){const[c,x]=base();x.strokeStyle=ENC;for(let y=0;y<256;y+=3){x.lineWidth=Math.random()*2+.3;x.beginPath();for(let px=0;px<=256;px+=6){const yy=y+Math.sin(px/30+y/18)*9+Math.sin(px/9)*2;px===0?x.moveTo(px,yy):x.lineTo(px,yy);}x.stroke();}return toTex(c);},
+};
+const texCache={};function getTex(k){return texCache[k]||(texCache[k]=TEX[k]());}
+function circuitTex(seed){const[c,x]=base();const r=rng(seed);x.strokeStyle=ENC;x.lineWidth=1.1;
+  for(let i=0;i<28;i++){let cx=Math.floor(r()*16)*16+8,cy=Math.floor(r()*16)*16+8;x.beginPath();x.moveTo(cx,cy);
+    const steps=2+Math.floor(r()*4);for(let s=0;s<steps;s++){if(r()<.5)cx+=(r()<.5?-1:1)*16*(1+Math.floor(r()*4));else cy+=(r()<.5?-1:1)*16*(1+Math.floor(r()*4));cx=Math.max(6,Math.min(250,cx));cy=Math.max(6,Math.min(250,cy));x.lineTo(cx,cy);}x.stroke();
+    x.beginPath();x.arc(cx,cy,2.4,0,7);x.stroke();}
+  x.fillStyle=ENC;for(let i=0;i<46;i++){x.beginPath();x.arc(r()*256,r()*256,1.5+r()*1.4,0,7);x.fill();}
+  for(let i=0;i<5;i++){const w=18+r()*40,h=14+r()*28;x.strokeRect(r()*(256-w),r()*(256-h),w,h);}
+  return toTex(c);}
+
+/* ---------- SCÈNE ---------- */
+const scene=new THREE.Scene();
+const ETAGE_H=1.0,ETAGE_W=3.0,ESPACE=0.06,OPEN_EXTRA=1.55;
+const PASc=ETAGE_H+ESPACE,n=ETAPES.length,mid=(n-1)/2,totalC=n*PASc;
+let aspect=window.innerWidth/window.innerHeight,viewSize=13;
+const camera=new THREE.OrthographicCamera(-viewSize*aspect,viewSize*aspect,viewSize,-viewSize,0.1,1000);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(window.devicePixelRatio);renderer.setSize(window.innerWidth,window.innerHeight);
+document.getElementById("scene").appendChild(renderer.domElement);
+const grid=new THREE.GridHelper(46,46,0xbcb6a6,0xd9d4c6);grid.position.y=-totalC/2-OPEN_EXTRA*mid-1.2;scene.add(grid);
+
+/* ---------- ÉTAGES ---------- */
+const etagesMesh=[];
+function baseY(i){return i*PASc-totalC/2+ETAGE_H/2;}
+ETAPES.forEach((et,i)=>{
+  const t=getTex(et.tex),top=circuitTex(i*97+13);const mk=m=>new THREE.MeshBasicMaterial({map:m,transparent:true});
+  const mats=[mk(t),mk(t),mk(top),mk(getTex("hatch")),mk(t),mk(t)];
+  const geo=new THREE.BoxGeometry(ETAGE_W,ETAGE_H,ETAGE_W);
+  const mesh=new THREE.Mesh(geo,mats);mesh.position.y=baseY(i);mesh.userData.index=i;mesh.userData.faceMats=mats;mesh.userData.op=1;mesh.userData.opT=1;scene.add(mesh);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x171717,transparent:true}));
+  mesh.add(edges);mesh.userData.edges=edges;
+  const label=makeSprite((i+1)+". "+et.nom,900,64,26,6.2,0.46);label.position.x=ETAGE_W/2+3.6;scene.add(label);mesh.userData.label=label;
+  etagesMesh.push(mesh);
+});
+function makeSprite(txt,cw,ch,fs,sx,sy,col){
+  const c=document.createElement("canvas"),x=c.getContext("2d");c.width=cw;c.height=ch;
+  x.font=fs+"px 'Courier New',monospace";const w=x.measureText(txt).width;
+  x.fillStyle="rgba(241,237,226,.88)";x.fillRect(0,ch/2-fs/2-2,w+20,fs+8);
+  x.fillStyle=col||"#171717";x.textBaseline="middle";x.fillText(txt,10,ch/2);
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:toTex(c),transparent:true,opacity:0}));
+  spr.scale.set(sx,sy,1);return spr;
+}
+
+/* ---------- LIBRAIRIE D'OBJETS AU TRAIT ---------- */
+const cyl=(rt,rb,h,s=16)=>new THREE.CylinderGeometry(rt,rb,h,s);
+const box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+
+/* ---------- MACHINES + NŒUDS ---------- */
+const machines=[],machMats=[],machEdge=[],glyphMats=[],nodesAll=[];
+const NODE=new THREE.SphereGeometry(0.085,16,16);
+const nodeMat={};Object.keys(ROLE).forEach(r=>{nodeMat[r]=new THREE.MeshBasicMaterial({color:ROLE[r].c,transparent:true,opacity:0});machMats.push(nodeMat[r]);});
+/* une pièce dessinée : face claire + arêtes encre, opacités animées */
+function part(host,i,geo,x,y,z,rx,ry,rz){
+  const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xfcfaf3,transparent:true,opacity:0}));
+  const e=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x171717,transparent:true,opacity:0}));
+  m.add(e);m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(ry)m.rotation.y=ry;if(rz)m.rotation.z=rz;
+  machMats.push(m.material,e.material);machEdge[i].push(e.material);host.add(m);return m;}
+function sub(g){const s=new THREE.Group();g.add(s);return s;}
+const OBJ={
+  serveur(s,i){part(s,i,box(0.34,0.62,0.26),0,0.31,0);for(let k=0;k<5;k++)part(s,i,box(0.3,0.012,0.02),0,0.13+k*0.11,0.13);},
+  ordinateur(s,i){part(s,i,box(0.2,0.32,0.3),-0.14,0.16,0);part(s,i,box(0.38,0.26,0.025),0.12,0.34,0);part(s,i,cyl(0.015,0.015,0.14,8),0.12,0.14,0);part(s,i,box(0.16,0.02,0.12),0.12,0.06,0);},
+  broyeur(s,i){part(s,i,cyl(0.27,0.27,0.5,18),0,0.34,0,0,0,Math.PI/2);part(s,i,cyl(0.29,0.29,0.04,18),-0.25,0.34,0,0,0,Math.PI/2);part(s,i,cyl(0.29,0.29,0.04,18),0.25,0.34,0,0,0,Math.PI/2);part(s,i,box(0.14,0.34,0.5),-0.36,0.17,0);part(s,i,box(0.14,0.34,0.5),0.36,0.17,0);},
+  cuve(s,i){part(s,i,box(0.5,0.06,0.5),0,0.03,0);part(s,i,cyl(0.24,0.24,0.5,18),0,0.31,0);part(s,i,cyl(0.001,0.24,0.16,18),0,0.64,0);},
+  presse(s,i){part(s,i,box(0.5,0.1,0.42),0,0.05,0);part(s,i,box(0.045,0.5,0.045),-0.21,0.3,0.17);part(s,i,box(0.045,0.5,0.045),0.21,0.3,0.17);part(s,i,box(0.045,0.5,0.045),-0.21,0.3,-0.17);part(s,i,box(0.045,0.5,0.045),0.21,0.3,-0.17);part(s,i,box(0.54,0.1,0.46),0,0.56,0);part(s,i,cyl(0.1,0.1,0.22,12),0,0.4,0);},
+  tremie(s,i){part(s,i,cyl(0.3,0.06,0.34,14),0,0.3,0);part(s,i,box(0.14,0.18,0.14),0,0.09,0);},
+  balise(s,i){part(s,i,box(0.32,0.1,0.32),0,0.05,0);part(s,i,cyl(0.03,0.03,0.6,10),0,0.4,0);part(s,i,box(0.14,0.14,0.14),0,0.74,0);},
+  jonction(s,i){part(s,i,box(0.34,0.16,0.32),0,0.08,0);part(s,i,cyl(0.05,0.05,0.5,10),-0.32,0.2,0,0,0,0.9);part(s,i,cyl(0.05,0.05,0.5,10),0.32,0.2,0,0,0,-0.9);},
+  ratio(s,i){part(s,i,box(0.4,0.06,0.4),0,0.03,0);part(s,i,cyl(0.2,0.2,0.34,16),0,0.5,0);part(s,i,cyl(0.05,0.05,0.55,10),-0.26,0.44,0,0,0,0.7);part(s,i,cyl(0.05,0.05,0.55,10),0.26,0.44,0,0,0,-0.7);},
+  antenne(s,i){part(s,i,box(0.14,0.06,0.14),0,0.03,0);part(s,i,cyl(0.015,0.015,0.7,8),0,0.38,0);for(let k=0;k<3;k++)part(s,i,box(0.2-k*0.05,0.012,0.012),0,0.46+k*0.1,0);},
+  transfo(s,i){part(s,i,box(0.3,0.26,0.34),0,0.13,0);for(let k=-1;k<2;k++)part(s,i,cyl(0.03,0.03,0.16,8),k*0.09,0.34,0);for(let k=0;k<4;k++)part(s,i,box(0.02,0.22,0.36),0.16+k*0.03,0.13,0);},
+  tour(s,i,h){part(s,i,box(0.16,h,0.16),0,h/2,0);part(s,i,box(0.18,0.02,0.18),0,h,0);},
+  caisse(s,i,sz){part(s,i,box(sz,sz,sz),0,sz/2,0);}
+};
+const MACH={in:"tremie",const:"ordinateur",scale:"broyeur",combine:"cuve",ratio:"ratio",formula:"ordinateur",round:"presse",add:"jonction",sub:"jonction",final:"balise"};
+function place(g,i,name,x,z,ry,arg){const s=sub(g);OBJ[name](s,i,arg);s.position.set(x,0,z);if(ry)s.rotation.y=ry;return s;}
+
+function buildMachine(i){
+  machEdge[i]=[];const g=new THREE.Group();const op=ETAPES[i].op;
+  /* tapis de flux gauche → droite (continuité d'un étage à l'autre) */
+  part(g,i,box(2.5,0.04,0.34),0,0.02,0);
+  for(let k=-1;k<=1;k++)part(g,i,cyl(0.05,0.05,0.34,10),k*0.9,0.05,0,Math.PI/2,0,0);
+  /* machine centrale selon l'opération */
+  place(g,i,MACH[op]||"ordinateur",0,0,0);
+  /* décor fixe aux coins (même implantation à chaque étage) */
+  place(g,i,"serveur",-1.18,-1.12,0.4);
+  place(g,i,"transfo",-1.18,1.12,-0.5);
+  place(g,i,"tour",1.18,1.12,0.4,0.7);
+  /* glyphe opérateur */
+  const gl=makeSprite(ETAPES[i].glyph,128,128,72,0.85,0.85,"#d4452f");gl.position.set(0,1.25,0);g.add(gl);glyphMats.push(gl.material);
+  /* nœuds : entrées à gauche, sortie à droite, paramètres au-dessus */
+  const slot={in:[],par:[],out:[]};ETAPES[i].trace.forEach((t,k)=>slot[t[0]].push({t,k}));
+  const leadPts=[],anchor=[0,0.6,0];
+  function node(role,x,y,z,k){const nd=new THREE.Mesh(NODE,nodeMat[role]);nd.position.set(x,y,z);nd.userData={floor:i,idx:k};g.add(nd);nodesAll.push(nd);leadPts.push(x,y,z,anchor[0],anchor[1],anchor[2]);}
+  slot.in.forEach((o,j)=>{const x=-0.7-j*0.36;place(g,i,"caisse",x,0,0,0.16);node("in",x,0.24,0,o.k);});
+  if(slot.par.length){place(g,i,"ordinateur",-0.05,-0.9,Math.PI);slot.par.forEach((o,j)=>node("par",-0.32+j*0.28,0.96+j*0.03,-0.55,o.k));}
+  slot.out.forEach((o,j)=>{const x=0.78+j*0.38;place(g,i,"caisse",x,0,0,0.18);node("out",x,0.26,0,o.k);});
+  if(leadPts.length){const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(leadPts),3));
+    const lm=new THREE.LineBasicMaterial({color:0x9a9484,transparent:true,opacity:0});machMats.push(lm);g.add(new THREE.LineSegments(lg,lm));}
+  /* flux pointillé rouge le long du tapis */
+  const fg=new THREE.BufferGeometry();fg.setAttribute("position",new THREE.BufferAttribute(new Float32Array([-1.25,0.12,0,-0.32,0.12,0,0.32,0.12,0,1.25,0.12,0]),3));
+  const fm=new THREE.LineDashedMaterial({color:0xd4452f,dashSize:0.1,gapSize:0.07,transparent:true,opacity:0});machMats.push(fm);
+  const fl=new THREE.Line(fg,fm);fl.computeLineDistances();g.add(fl);
+  /* ligne de rappel vers l'étiquette latérale */
+  const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.BufferAttribute(new Float32Array([1.3,0.7,0,1.95,1.05,0]),3));
+  const cm=new THREE.LineDashedMaterial({color:0x171717,dashSize:0.08,gapSize:0.06,transparent:true,opacity:0});machMats.push(cm);
+  const cl=new THREE.Line(cg,cm);cl.computeLineDistances();g.add(cl);
+  scene.add(g);machines.push(g);
+}
+for(let i=0;i<n;i++) buildMachine(i);
+
+/* ---------- BOÎTE NOIRE + POINTILLÉS ---------- */
+const shellGeo=new THREE.BoxGeometry(ETAGE_W*1.07,totalC+0.12,ETAGE_W*1.07);
+const shell=new THREE.Mesh(shellGeo,new THREE.MeshBasicMaterial({color:0x141414,transparent:true,opacity:0.97}));scene.add(shell);
+const shellEdges=new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo),new THREE.LineBasicMaterial({color:0x000,transparent:true,opacity:0.97}));shell.add(shellEdges);
+const leadGeo=new THREE.BufferGeometry();leadGeo.setAttribute("position",new THREE.BufferAttribute(new Float32Array((n-1)*4*2*3),3));
+const lead=new THREE.LineSegments(leadGeo,new THREE.LineDashedMaterial({color:0x171717,dashSize:0.12,gapSize:0.1,transparent:true,opacity:0}));scene.add(lead);
+
+/* ---------- OUVERTURE ---------- */
+let extra=0,extraTarget=0,shellOp=0.97,shellTarget=0.97,ouverte=false;
+function ouvrir(){ouverte=true;extraTarget=OPEN_EXTRA;shellTarget=0;document.getElementById("ouvrir").textContent="▣ fermer la boîte";}
+function fermer(){ouverte=false;extraTarget=0;shellTarget=0.97;zoomTarget=1;focusY=0;actif=-1;isole=false;etagesMesh.forEach(mm=>mm.userData.opT=1);detail.classList.remove("ouvert");hideTip();document.getElementById("ouvrir").textContent="▣ ouvrir la boîte";}
+document.getElementById("ouvrir").addEventListener("click",()=>ouverte?fermer():ouvrir());
+
+/* ---------- ORBITE ---------- */
+const orbit={theta:Math.PI/4,phi:Math.PI/3,radius:30};const target=new THREE.Vector3(0,0,0);let focusY=0,zoomTarget=1;
+function placerCamera(){const x=target.x+orbit.radius*Math.sin(orbit.phi)*Math.sin(orbit.theta),y=target.y+orbit.radius*Math.cos(orbit.phi),z=target.z+orbit.radius*Math.sin(orbit.phi)*Math.cos(orbit.theta);camera.position.set(x,y,z);camera.lookAt(target);}
+let drag=false,px=0,py=0,moved=false;
+renderer.domElement.addEventListener("mousedown",e=>{drag=true;moved=false;px=e.clientX;py=e.clientY;});
+window.addEventListener("mouseup",()=>drag=false);
+window.addEventListener("mousemove",e=>{if(!drag)return;moved=true;orbit.theta-=(e.clientX-px)*.008;orbit.phi-=(e.clientY-py)*.008;orbit.phi=Math.max(.2,Math.min(Math.PI/2-.05,orbit.phi));px=e.clientX;py=e.clientY;});
+renderer.domElement.addEventListener("wheel",e=>{e.preventDefault();zoomTarget=Math.max(.35,Math.min(4.5,zoomTarget-e.deltaY*.0014));},{passive:false});
+renderer.domElement.addEventListener("touchstart",e=>{drag=true;moved=false;px=e.touches[0].clientX;py=e.touches[0].clientY;});
+renderer.domElement.addEventListener("touchend",()=>drag=false);
+renderer.domElement.addEventListener("touchmove",e=>{if(!drag)return;moved=true;orbit.theta-=(e.touches[0].clientX-px)*.008;orbit.phi-=(e.touches[0].clientY-py)*.008;orbit.phi=Math.max(.2,Math.min(Math.PI/2-.05,orbit.phi));px=e.touches[0].clientX;py=e.touches[0].clientY;},{passive:true});
+
+/* ---------- SÉLECTION / TIP ---------- */
+const ray=new THREE.Raycaster(),m2=new THREE.Vector2();let actif=-1,activeNode=null,isole=false;
+function shown(o){let p=o;while(p){if(p.visible===false)return false;p=p.parent;}return true;}
+const tip=document.getElementById("tip");
+renderer.domElement.addEventListener("click",e=>{
+  if(moved)return;
+  if(!ouverte){ouvrir();return;}
+  m2.x=(e.clientX/window.innerWidth)*2-1;m2.y=-(e.clientY/window.innerHeight)*2+1;ray.setFromCamera(m2,camera);
+  const hn=ray.intersectObjects(nodesAll).filter(r=>shown(r.object));
+  if(hn.length){const nd=hn[0].object;selectionner(nd.userData.floor);showTip(nd);return;}
+  const h=ray.intersectObjects(etagesMesh).filter(r=>shown(r.object));
+  if(h.length){const fi=h[0].object.userData.index;if(fi===actif&&zoomTarget>1.6){vueEnsemble();}else{selectionner(fi);}hideTip();return;}
+  vueEnsemble();
+});
+function selectionner(i){
+  if(!ouverte)ouvrir();actif=i;isole=true;focusY=etagesMesh[i].position.y+0.55;zoomTarget=2.7;
+  etagesMesh.forEach((mm,k)=>{mm.userData.edges.material.color.set(k===i?0xd4452f:0x171717);mm.userData.opT=(k===i?1:0);});
+  machEdge.forEach((arr,k)=>arr.forEach(mat=>mat.color.set(k===i?0xd4452f:0x171717)));
+  ouvrirDetail(i);majListe();
+}
+function vueEnsemble(){actif=-1;isole=false;focusY=0;zoomTarget=1;
+  etagesMesh.forEach(mm=>{mm.userData.edges.material.color.set(0x171717);mm.userData.opT=1;});
+  machEdge.forEach(arr=>arr.forEach(mat=>mat.color.set(0x171717)));
+  detail.classList.remove("ouvert");hideTip();majListe();
+}
+function showTip(nd){activeNode=nd;const e=ETAPES[nd.userData.floor].trace[nd.userData.idx];const r=ROLE[e[0]];
+  tip.style.borderLeftColor="#"+r.c.toString(16).padStart(6,"0");
+  tip.innerHTML='<div class="role">'+r.t+'</div><div class="nm">'+e[1]+' = '+e[2]+'</div><div class="ln">'+e[3]+'</div>';
+  tip.style.display="block";}
+function hideTip(){activeNode=null;tip.style.display="none";}
+
+/* ---------- PANNEAU ---------- */
+const detail=document.getElementById("detail");
+function ouvrirDetail(i){const e=ETAPES[i];
+  document.getElementById("d-num").textContent="Étage "+(i+1)+" / "+n;
+  document.getElementById("d-titre").textContent=e.nom;
+  document.getElementById("d-ref").textContent=e.ref;
+  document.getElementById("d-machine").textContent=e.glyph+" — "+(e.op==="in"?"entrée du dossier":e.op==="const"?"valeur de barème":e.op==="round"?"arrondi réglementaire":"opération de calcul");
+  const tr=document.getElementById("d-trace");tr.innerHTML="";
+  e.trace.forEach((t,k)=>{const d=document.createElement("div");d.className="el "+t[0];
+    d.innerHTML='<span>'+t[1]+'</span><span class="v">'+t[2]+' · '+t[3]+'</span>';
+    d.addEventListener("click",()=>{const nd=nodesAll.find(nn=>nn.userData.floor===i&&nn.userData.idx===k);if(nd)showTip(nd);});
+    tr.appendChild(d);});
+  document.getElementById("d-catala").innerHTML=e.catala;
+  detail.classList.add("ouvert");
+}
+document.getElementById("ferme").addEventListener("click",()=>detail.classList.remove("ouvert"));
+
+/* ---------- LISTE ---------- */
+const liste=document.getElementById("liste");
+function majListe(f=""){liste.innerHTML="";
+  ETAPES.forEach((e,i)=>{if(f&&!e.nom.toLowerCase().includes(f.toLowerCase()))return;
+    const b=document.createElement("button");b.className="etape-btn"+(i===actif?" actif":"");
+    b.innerHTML='<span class="num">'+String(i+1).padStart(2,"0")+'</span><span>'+e.nom+'</span>';
+    b.addEventListener("click",()=>selectionner(i));liste.appendChild(b);});
+}
+document.getElementById("search").addEventListener("input",e=>majListe(e.target.value));majListe();
+document.getElementById("haut").addEventListener("click",()=>selectionner(Math.min(n-1,(actif<0?0:actif+1))));
+document.getElementById("bas").addEventListener("click",()=>selectionner(Math.max(0,(actif<0?0:actif-1))));
+
+/* ---------- BOUCLE ---------- */
+const hw=ETAGE_W/2,vTmp=new THREE.Vector3();
+function animate(){
+  requestAnimationFrame(animate);
+  extra+=(extraTarget-extra)*.09;shellOp+=(shellTarget-shellOp)*.09;
+  shell.material.opacity=shellOp;shellEdges.material.opacity=shellOp;shell.visible=shellOp>.02;
+  const rev=Math.min(1,Math.max(0,extra/OPEN_EXTRA*1.3-0.25));glyphMats.forEach(m=>m.opacity=rev);
+  machMats.forEach(m=>m.opacity=rev);
+  etagesMesh.forEach((mm,i)=>{const y=baseY(i)+(i-mid)*extra;mm.position.y=y;
+    mm.userData.op+=(mm.userData.opT-mm.userData.op)*.12;const fo=mm.userData.op;
+    mm.userData.faceMats.forEach(fm=>fm.opacity=fo);mm.userData.edges.material.opacity=fo;mm.visible=fo>.02;
+    mm.userData.label.position.y=y;mm.userData.label.material.opacity=Math.min(1,extra/OPEN_EXTRA)*fo;
+    machines[i].position.y=y+ETAGE_H/2;machines[i].visible=rev>.01 && fo>.5;});
+  const op=Math.min(1,extra/OPEN_EXTRA*1.2)*(isole?0:1);lead.material.opacity=op;lead.visible=op>.03;
+  if(lead.visible){const arr=leadGeo.attributes.position.array;let p=0;const C=[[hw,hw],[hw,-hw],[-hw,hw],[-hw,-hw]];
+    for(let i=0;i<n-1;i++){const yT=etagesMesh[i].position.y+ETAGE_H/2,yB=etagesMesh[i+1].position.y-ETAGE_H/2;
+      C.forEach(([cx,cz])=>{arr[p++]=cx;arr[p++]=yT;arr[p++]=cz;arr[p++]=cx;arr[p++]=yB;arr[p++]=cz;});}
+    leadGeo.attributes.position.needsUpdate=true;lead.computeLineDistances();}
+  if(activeNode){if(rev<.2){hideTip();}else{activeNode.getWorldPosition(vTmp);vTmp.project(camera);
+    tip.style.left=((vTmp.x*.5+.5)*window.innerWidth)+"px";tip.style.top=((-vTmp.y*.5+.5)*window.innerHeight)+"px";
+    activeNode.scale.setScalar(1.4+Math.sin(Date.now()/240)*.15);}}
+  nodesAll.forEach(nd=>{if(nd!==activeNode)nd.scale.setScalar(1);});
+  camera.zoom+=(zoomTarget-camera.zoom)*.1;camera.updateProjectionMatrix();
+  target.y+=(focusY-target.y)*.08;placerCamera();renderer.render(scene,camera);
+}
+animate();
+window.addEventListener("resize",()=>{aspect=window.innerWidth/window.innerHeight;
+  camera.left=-viewSize*aspect;camera.right=viewSize*aspect;camera.top=viewSize;camera.bottom=-viewSize;
+  camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+</script>
+</body>
+</html>
